@@ -57,7 +57,6 @@ public class SceneTransition : MonoBehaviour
 
     private void Update()
     {
-        // 如果需要按键确认且玩家在触发区域内
         if (requireKeyPress && playerInTrigger && !isTransitioning)
         {
             if (Input.GetKeyDown(confirmKey))
@@ -73,7 +72,6 @@ public class SceneTransition : MonoBehaviour
 
         playerInTrigger = true;
 
-        // 如果不需要按键确认，直接切换
         if (!requireKeyPress)
         {
             StartTransition();
@@ -88,9 +86,6 @@ public class SceneTransition : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 开始场景切换
-    /// </summary>
     private void StartTransition()
     {
         if (isTransitioning) return;
@@ -105,9 +100,6 @@ public class SceneTransition : MonoBehaviour
         StartCoroutine(TransitionRoutine());
     }
 
-    /// <summary>
-    /// 场景切换协程
-    /// </summary>
     private IEnumerator TransitionRoutine()
     {
         // 播放音效
@@ -116,19 +108,22 @@ public class SceneTransition : MonoBehaviour
             audioSource.PlayOneShot(transitionSound);
         }
 
-        // 冻结游戏
-        Time.timeScale = 0f;
-
-        // 创建淡出效果
-        GameObject fadeCanvas = null;
-        CanvasGroup canvasGroup = null;
+        // 设置目标生成点
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.targetSpawnID = targetSpawnPointID;
+        }
 
         if (enableTransition)
         {
-            fadeCanvas = CreateFadeCanvas();
-            canvasGroup = fadeCanvas.GetComponentInChildren<CanvasGroup>();
+            // 创建淡出Canvas（初始透明）
+            GameObject fadeCanvas = CreateFadeCanvas();
+            CanvasGroup canvasGroup = fadeCanvas.GetComponentInChildren<CanvasGroup>();
+            
+            // 确保初始透明
+            canvasGroup.alpha = 0f;
 
-            // 淡出动画
+            // 淡出动画（屏幕从透明变黑）
             float timer = 0f;
             while (timer < fadeDuration)
             {
@@ -137,24 +132,24 @@ public class SceneTransition : MonoBehaviour
                 yield return null;
             }
             canvasGroup.alpha = 1f;
-        }
 
-        // 设置目标生成点
-        if (GameManager.Instance != null)
+            // 标记可以开始淡入了（在新场景加载后）
+            TransitionFadeIn fadeScript = fadeCanvas.GetComponent<TransitionFadeIn>();
+            if (fadeScript != null)
+            {
+                fadeScript.readyToFadeIn = true;
+            }
+
+            // 加载场景
+            SceneManager.LoadScene(targetSceneName);
+        }
+        else
         {
-            GameManager.Instance.targetSpawnID = targetSpawnPointID;
+            // 无过渡动画，直接加载
+            SceneManager.LoadScene(targetSceneName);
         }
-
-        // 恢复时间
-        Time.timeScale = 1f;
-
-        // 加载场景
-        SceneManager.LoadScene(targetSceneName);
     }
 
-    /// <summary>
-    /// 创建淡出遮罩Canvas
-    /// </summary>
     private GameObject CreateFadeCanvas()
     {
         // 创建Canvas
@@ -162,6 +157,14 @@ public class SceneTransition : MonoBehaviour
         Canvas canvas = canvasObj.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
         canvas.sortingOrder = 9999;
+        
+        // 添加CanvasScaler确保正确缩放
+        CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        
+        // 添加GraphicRaycaster
+        canvasObj.AddComponent<GraphicRaycaster>();
+        
         DontDestroyOnLoad(canvasObj);
 
         // 创建遮罩Panel
@@ -170,6 +173,7 @@ public class SceneTransition : MonoBehaviour
 
         Image img = panel.AddComponent<Image>();
         img.color = fadeColor;
+        img.raycastTarget = false;
 
         // 铺满屏幕
         RectTransform rt = panel.GetComponent<RectTransform>();
@@ -178,20 +182,19 @@ public class SceneTransition : MonoBehaviour
         rt.offsetMin = Vector2.zero;
         rt.offsetMax = Vector2.zero;
 
-        // 添加CanvasGroup控制透明度
+        // 添加CanvasGroup控制透明度（初始透明）
         CanvasGroup cg = panel.AddComponent<CanvasGroup>();
         cg.alpha = 0f;
+        cg.blocksRaycasts = false;
 
-        // 添加淡入脚本（新场景加载后自动淡入）
+        // 添加淡入脚本（但不立即执行）
         TransitionFadeIn fadeScript = canvasObj.AddComponent<TransitionFadeIn>();
         fadeScript.fadeDuration = fadeDuration;
+        fadeScript.readyToFadeIn = false; // 等待淡出完成后才能淡入
 
         return canvasObj;
     }
 
-    /// <summary>
-    /// 手动触发场景切换
-    /// </summary>
     public void TriggerTransition()
     {
         StartTransition();
@@ -202,7 +205,6 @@ public class SceneTransition : MonoBehaviour
     {
         Gizmos.color = Color.magenta;
         
-        // 绘制触发区域
         BoxCollider2D box = GetComponent<BoxCollider2D>();
         if (box != null)
         {
@@ -213,10 +215,6 @@ public class SceneTransition : MonoBehaviour
             Gizmos.DrawWireSphere(transform.position, 0.5f);
         }
 
-        // 绘制箭头指向目标
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawLine(transform.position, transform.position + Vector3.right);
-        
         #if UNITY_EDITOR
         string label = $"→ {targetSceneName}\n   @ {targetSpawnPointID}";
         UnityEditor.Handles.Label(transform.position + Vector3.up * 0.5f, label);
@@ -231,6 +229,16 @@ public class SceneTransition : MonoBehaviour
 public class TransitionFadeIn : MonoBehaviour
 {
     public float fadeDuration = 0.5f;
+    public bool readyToFadeIn = false; // 控制是否可以开始淡入
+    
+    private bool hasFadedIn = false;
+    private string originalSceneName;
+
+    private void Awake()
+    {
+        // 记录当前场景名，用于判断是否已切换场景
+        originalSceneName = SceneManager.GetActiveScene().name;
+    }
 
     private void OnEnable()
     {
@@ -244,28 +252,63 @@ public class TransitionFadeIn : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        StartCoroutine(FadeInAndDestroy());
+        // 只有当场景真正切换后才淡入
+        if (scene.name != originalSceneName && !hasFadedIn)
+        {
+            StartCoroutine(FadeInAndDestroy());
+        }
     }
 
     private IEnumerator FadeInAndDestroy()
     {
-        // 等待一帧确保场景初始化完成
+        hasFadedIn = true;
+        
+        // 等待几帧确保场景完全初始化
+        yield return null;
         yield return null;
 
         CanvasGroup cg = GetComponentInChildren<CanvasGroup>();
-        if (cg != null)
+        
+        if (cg == null)
         {
-            float timer = 0f;
-            while (timer < fadeDuration)
-            {
-                timer += Time.unscaledDeltaTime;
-                cg.alpha = Mathf.Lerp(1f, 0f, timer / fadeDuration);
-                yield return null;
-            }
-            cg.alpha = 0f;
+            Debug.LogWarning("[TransitionFadeIn] 未找到CanvasGroup，直接销毁");
+            Destroy(gameObject);
+            yield break;
         }
 
+        // 确保遮罩是不透明的（黑色）
+        cg.alpha = 1f;
+
+        // 淡入动画（从黑色变透明）
+        float timer = 0f;
+        while (timer < fadeDuration)
+        {
+            timer += Time.unscaledDeltaTime;
+            cg.alpha = Mathf.Lerp(1f, 0f, timer / fadeDuration);
+            yield return null;
+        }
+        
+        cg.alpha = 0f;
+
         // 销毁Canvas
+        Debug.Log("[TransitionFadeIn] 过渡完成，销毁遮罩");
         Destroy(gameObject);
+    }
+
+    // 安全措施：如果10秒后还没销毁，强制销毁
+    private void Start()
+    {
+        StartCoroutine(SafetyDestroy());
+    }
+
+    private IEnumerator SafetyDestroy()
+    {
+        yield return new WaitForSecondsRealtime(10f);
+        
+        if (gameObject != null)
+        {
+            Debug.LogWarning("[TransitionFadeIn] 安全销毁：遮罩超时未消失");
+            Destroy(gameObject);
+        }
     }
 }
