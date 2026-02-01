@@ -8,8 +8,23 @@ using System.Collections;
 /// </summary>
 public class SceneTransition : MonoBehaviour
 {
+    public enum SceneTargetMode
+    {
+        ByName,     // 通过场景名称
+        ByIndex     // 通过场景索引
+    }
+
     [Header("=== 目标设置 ===")]
+    [Tooltip("选择通过名称还是索引指定场景")]
+    public SceneTargetMode targetMode = SceneTargetMode.ByName;
+    
+    [Tooltip("目标场景名称（ByName模式）")]
     public string targetSceneName;
+    
+    [Tooltip("目标场景索引（ByIndex模式）")]
+    public int targetSceneIndex = 0;
+    
+    [Tooltip("目标生成点ID")]
     public string targetSpawnPointID;
 
     [Header("=== 触发设置 ===")]
@@ -152,7 +167,10 @@ public class SceneTransition : MonoBehaviour
         }
 
         // 满足条件，开始切换
-        Debug.Log($"[SceneTransition] 触发切换! 目标: {targetSceneName} @ {targetSpawnPointID}");
+        string sceneName = targetMode == SceneTargetMode.ByIndex 
+            ? $"索引{targetSceneIndex}" 
+            : targetSceneName;
+        Debug.Log($"[SceneTransition] 触发切换! 目标: {sceneName} @ {targetSpawnPointID}");
         StartTransition();
     }
 
@@ -202,7 +220,12 @@ public class SceneTransition : MonoBehaviour
 
     private void StartTransition()
     {
-        if (string.IsNullOrEmpty(targetSceneName)) return;
+        // 验证目标
+        if (targetMode == SceneTargetMode.ByName && string.IsNullOrEmpty(targetSceneName))
+        {
+            Debug.LogWarning("[SceneTransition] 目标场景名称为空！");
+            return;
+        }
         if (isTransitioning) return;
         
         isTransitioning = true;
@@ -225,16 +248,29 @@ public class SceneTransition : MonoBehaviour
             GameManager.Instance.targetSpawnID = targetSpawnPointID;
         }
 
+        // 获取目标场景名称
+        string sceneName = GetTargetSceneName();
+        
         // 使用 TransitionManager 进行过渡
         if (TransitionManager.Instance != null)
         {
-            TransitionManager.Instance.LoadScene(targetSceneName, fadeColor);
+            TransitionManager.Instance.LoadScene(sceneName, fadeColor);
         }
         else
         {
             Debug.LogWarning("[SceneTransition] TransitionManager 不存在，直接加载场景");
-            SceneManager.LoadScene(targetSceneName);
+            SceneManager.LoadScene(sceneName);
         }
+    }
+
+    private string GetTargetSceneName()
+    {
+        if (targetMode == SceneTargetMode.ByIndex)
+        {
+            string path = SceneUtility.GetScenePathByBuildIndex(targetSceneIndex);
+            return System.IO.Path.GetFileNameWithoutExtension(path);
+        }
+        return targetSceneName;
     }
 
     private void OnDrawGizmos()

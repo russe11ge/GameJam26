@@ -493,12 +493,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d91f0705448f4d5daa94dd623bdaef6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mainMenuSceneName: "\u5F00\u59CB\u754C\u9762"
-  blackOverlay: {fileID: 0}
-  fadeOutDuration: 1
-  mainMenuFadeInDuration: 0.5
-  uiToFadeOut: []
-  enableDebug: 1
 --- !u!1 &207160587
 GameObject:
   m_ObjectHideFlags: 0
@@ -728,8 +722,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2dc9a37a0758e492f85a3c5a7b95fc0a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetSceneName: "3. \u64CD\u573A"
-  targetSpawnPointID: 3-2
+  targetMode: 0
+  targetSceneName: "\u77EDscene"
+  targetSceneIndex: 0
+  targetSpawnPointID: 
   triggerTag: Player
   requireKeyPress: 0
   confirmKey: 101
@@ -1234,7 +1230,7 @@ MonoBehaviour:
   walkFrameRate: 8
   moveThreshold: 0.1
   useRigidbody: 1
-  invertFlip: 1
+  invertFlip: 0
 --- !u!114 &478556506
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1247,8 +1243,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ad7fc207ba2384d2fb6480716b215a0d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dontDestroyOnLoad: 1
-  enableDebug: 1
 --- !u!1 &483496648
 GameObject:
   m_ObjectHideFlags: 0
@@ -2281,7 +2275,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: E to Enter
+  m_text: ????????
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: f9067dae0df484ee7b8401b364136ad3, type: 2}
   m_sharedMaterial: {fileID: -7750309689299292830, guid: f9067dae0df484ee7b8401b364136ad3, type: 2}
@@ -2734,7 +2728,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2dc9a37a0758e492f85a3c5a7b95fc0a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  targetMode: 0
   targetSceneName: "3. \u64CD\u573A"
+  targetSceneIndex: 0
   targetSpawnPointID: 3-2
   triggerTag: Player
   requireKeyPress: 0

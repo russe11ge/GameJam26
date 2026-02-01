@@ -1327,7 +1327,13 @@ MonoBehaviour:
   - triggerCollider: {fileID: 1074634784}
     text: {fileID: 1064495084}
     requireMask: 0
-    requiredMaskId: 
+    requiredMaskId: Mask3
+    playerInside: 0
+    currentAlpha: 0
+  - triggerCollider: {fileID: 2060668102}
+    text: {fileID: 1544963879}
+    requireMask: 1
+    requiredMaskId: Mask3
     playerInside: 0
     currentAlpha: 0
   fadeInSpeed: 2
