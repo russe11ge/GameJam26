@@ -4,7 +4,7 @@ using System.Collections;
 
 /// <summary>
 /// 场景切换触发器
-/// 使用 TransitionManager 进行统一的过渡动画
+/// 支持面具要求、按键确认、过渡动画
 /// </summary>
 public class SceneTransition : MonoBehaviour
 {
@@ -20,6 +20,19 @@ public class SceneTransition : MonoBehaviour
     
     [Tooltip("确认按键")]
     public KeyCode confirmKey = KeyCode.E;
+
+    [Header("=== 面具要求（可选）===")]
+    [Tooltip("是否需要特定面具才能触发")]
+    public bool requireMask = false;
+    
+    [Tooltip("需要的面具ID")]
+    public string requiredMaskId;
+    
+    [Tooltip("没有面具时显示的提示物体（可选）")]
+    public GameObject noMaskHint;
+    
+    [Tooltip("提示显示时长")]
+    public float hintDuration = 2f;
 
     [Header("=== 过渡动画 ===")]
     [Tooltip("过渡颜色")]
@@ -37,18 +50,28 @@ public class SceneTransition : MonoBehaviour
     [Header("=== 音效 ===")]
     [Tooltip("切换场景时播放的音效")]
     public AudioClip transitionSound;
+    
+    [Tooltip("没有面具时播放的音效")]
+    public AudioClip noMaskSound;
 
     private bool isTransitioning = false;
     private bool playerInTrigger = false;
     private AudioSource audioSource;
+    private Coroutine hintCoroutine;
 
     private void Awake()
     {
         audioSource = GetComponent<AudioSource>();
-        if (audioSource == null && transitionSound != null)
+        if (audioSource == null && (transitionSound != null || noMaskSound != null))
         {
             audioSource = gameObject.AddComponent<AudioSource>();
             audioSource.playOnAwake = false;
+        }
+
+        // 初始隐藏提示
+        if (noMaskHint != null)
+        {
+            noMaskHint.SetActive(false);
         }
     }
 
@@ -58,8 +81,7 @@ public class SceneTransition : MonoBehaviour
         {
             if (Input.GetKeyDown(confirmKey))
             {
-                Debug.Log($"[SceneTransition] 按下 {confirmKey}，触发切换");
-                StartTransition();
+                TryTransition();
             }
         }
     }
@@ -72,8 +94,7 @@ public class SceneTransition : MonoBehaviour
 
         if (!requireKeyPress)
         {
-            Debug.Log($"[SceneTransition] 自动触发! 目标: {targetSceneName} @ {targetSpawnPointID}");
-            StartTransition();
+            TryTransition();
         }
     }
 
@@ -82,7 +103,79 @@ public class SceneTransition : MonoBehaviour
         if (other.CompareTag(triggerTag))
         {
             playerInTrigger = false;
+            
+            // 离开时隐藏提示
+            if (noMaskHint != null && noMaskHint.activeSelf)
+            {
+                noMaskHint.SetActive(false);
+            }
         }
+    }
+
+    /// <summary>
+    /// 尝试触发场景切换（检查面具要求）
+    /// </summary>
+    private void TryTransition()
+    {
+        // 检查面具要求
+        if (requireMask && !string.IsNullOrEmpty(requiredMaskId))
+        {
+            if (!CheckMaskRequirement())
+            {
+                // 没有所需面具
+                Debug.Log($"[SceneTransition] 需要面具 {requiredMaskId}，但玩家没有");
+                ShowNoMaskHint();
+                return;
+            }
+        }
+
+        // 满足条件，开始切换
+        Debug.Log($"[SceneTransition] 触发切换! 目标: {targetSceneName} @ {targetSpawnPointID}");
+        StartTransition();
+    }
+
+    /// <summary>
+    /// 检查玩家是否拥有所需面具
+    /// </summary>
+    private bool CheckMaskRequirement()
+    {
+        if (PlayerMaskManager.Instance == null)
+        {
+            Debug.LogWarning("[SceneTransition] PlayerMaskManager 不存在");
+            return false;
+        }
+
+        // 检查当前佩戴的面具是否匹配
+        return PlayerMaskManager.Instance.currentMaskId == requiredMaskId;
+    }
+
+    /// <summary>
+    /// 显示没有面具的提示
+    /// </summary>
+    private void ShowNoMaskHint()
+    {
+        // 播放提示音效
+        if (noMaskSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(noMaskSound);
+        }
+
+        // 显示提示物体
+        if (noMaskHint != null)
+        {
+            if (hintCoroutine != null)
+            {
+                StopCoroutine(hintCoroutine);
+            }
+            hintCoroutine = StartCoroutine(ShowHintCoroutine());
+        }
+    }
+
+    private IEnumerator ShowHintCoroutine()
+    {
+        noMaskHint.SetActive(true);
+        yield return new WaitForSeconds(hintDuration);
+        noMaskHint.SetActive(false);
     }
 
     private void StartTransition()
@@ -91,6 +184,12 @@ public class SceneTransition : MonoBehaviour
         if (isTransitioning) return;
         
         isTransitioning = true;
+        
+        // 隐藏提示
+        if (noMaskHint != null)
+        {
+            noMaskHint.SetActive(false);
+        }
         
         // 播放音效
         if (transitionSound != null && audioSource != null)
@@ -117,7 +216,6 @@ public class SceneTransition : MonoBehaviour
         }
         else
         {
-            // 如果没有 TransitionManager，直接加载
             Debug.LogWarning("[SceneTransition] TransitionManager 不存在，直接加载场景");
             SceneManager.LoadScene(targetSceneName);
         }
@@ -125,7 +223,20 @@ public class SceneTransition : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        Gizmos.color = requireKeyPress ? Color.yellow : Color.magenta;
+        // 根据设置显示不同颜色
+        if (requireMask)
+        {
+            Gizmos.color = Color.cyan; // 需要面具
+        }
+        else if (requireKeyPress)
+        {
+            Gizmos.color = Color.yellow; // 需要按键
+        }
+        else
+        {
+            Gizmos.color = Color.magenta; // 自动触发
+        }
+        
         BoxCollider2D box = GetComponent<BoxCollider2D>();
         if (box != null)
         {

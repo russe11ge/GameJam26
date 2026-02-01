@@ -15,14 +15,27 @@ public class PlayerMaskManager : MonoBehaviour
     [Tooltip("默认/初始面具ID")]
     public string defaultMaskId = "mask_blank";
 
+    [Header("=== Debug ===")]
+    public bool enableDebug = true;
+
     void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            if (enableDebug) Debug.Log("[PlayerMaskManager] 初始化成功，当前面具: " + currentMaskId);
         }
-        else Destroy(gameObject);
+        else
+        {
+            if (enableDebug) Debug.Log("[PlayerMaskManager] 已存在实例，销毁重复的");
+            Destroy(gameObject);
+        }
+    }
+
+    void Start()
+    {
+        if (enableDebug) PrintStatus();
     }
 
     /// <summary>
@@ -30,11 +43,23 @@ public class PlayerMaskManager : MonoBehaviour
     /// </summary>
     public void UnlockMask(string maskId)
     {
-        if (string.IsNullOrEmpty(maskId)) return;
+        if (string.IsNullOrEmpty(maskId))
+        {
+            if (enableDebug) Debug.LogWarning("[PlayerMaskManager] UnlockMask 失败：maskId 为空");
+            return;
+        }
         
+        bool isNew = !ownedMasks.Contains(maskId);
         ownedMasks.Add(maskId);
-        currentMaskId = maskId;  // 自动将当前面具设为新获得的
-        Debug.Log("[Mask] Unlocked & set current: " + maskId);
+        string oldMask = currentMaskId;
+        currentMaskId = maskId;
+        
+        if (enableDebug)
+        {
+            Debug.Log($"[PlayerMaskManager] UnlockMask: {maskId} (新面具: {isNew})");
+            Debug.Log($"[PlayerMaskManager] 当前面具: {oldMask} → {currentMaskId}");
+            PrintStatus();
+        }
     }
 
     /// <summary>
@@ -42,10 +67,20 @@ public class PlayerMaskManager : MonoBehaviour
     /// </summary>
     public void UnlockMaskOnly(string maskId)
     {
-        if (string.IsNullOrEmpty(maskId)) return;
+        if (string.IsNullOrEmpty(maskId))
+        {
+            if (enableDebug) Debug.LogWarning("[PlayerMaskManager] UnlockMaskOnly 失败：maskId 为空");
+            return;
+        }
         
+        bool isNew = !ownedMasks.Contains(maskId);
         ownedMasks.Add(maskId);
-        Debug.Log("[Mask] Unlocked (no change to current): " + maskId);
+        
+        if (enableDebug)
+        {
+            Debug.Log($"[PlayerMaskManager] UnlockMaskOnly: {maskId} (新面具: {isNew})");
+            PrintStatus();
+        }
     }
 
     /// <summary>
@@ -53,22 +88,29 @@ public class PlayerMaskManager : MonoBehaviour
     /// </summary>
     public void SetCurrentMask(string maskId)
     {
-        if (string.IsNullOrEmpty(maskId)) return;
+        if (string.IsNullOrEmpty(maskId))
+        {
+            if (enableDebug) Debug.LogWarning("[PlayerMaskManager] SetCurrentMask 失败：maskId 为空");
+            return;
+        }
         
         if (ownedMasks.Contains(maskId) || maskId == defaultMaskId)
         {
+            string oldMask = currentMaskId;
             currentMaskId = maskId;
-            Debug.Log("[Mask] Current mask set to: " + maskId);
+            if (enableDebug) Debug.Log($"[PlayerMaskManager] SetCurrentMask: {oldMask} → {maskId}");
         }
         else
         {
-            Debug.LogWarning("[Mask] Cannot set current mask - not owned: " + maskId);
+            if (enableDebug) Debug.LogWarning($"[PlayerMaskManager] SetCurrentMask 失败：未拥有面具 {maskId}");
         }
     }
 
     public bool HasMask(string maskId)
     {
-        return ownedMasks.Contains(maskId);
+        bool has = ownedMasks.Contains(maskId);
+        if (enableDebug) Debug.Log($"[PlayerMaskManager] HasMask({maskId}): {has}");
+        return has;
     }
 
     /// <summary>
@@ -76,7 +118,35 @@ public class PlayerMaskManager : MonoBehaviour
     /// </summary>
     public string GetCurrentMask()
     {
+        if (enableDebug) Debug.Log($"[PlayerMaskManager] GetCurrentMask: {currentMaskId}");
         return currentMaskId;
+    }
+
+    /// <summary>
+    /// 获取拥有的面具数量
+    /// </summary>
+    public int GetOwnedMaskCount()
+    {
+        return ownedMasks.Count;
+    }
+
+    /// <summary>
+    /// 打印当前状态
+    /// </summary>
+    public void PrintStatus()
+    {
+        Debug.Log("========== [PlayerMaskManager] 状态 ==========");
+        Debug.Log($"当前佩戴面具: {currentMaskId}");
+        Debug.Log($"拥有面具数量: {ownedMasks.Count}");
+        if (ownedMasks.Count > 0)
+        {
+            Debug.Log("拥有的面具列表:");
+            foreach (var mask in ownedMasks)
+            {
+                Debug.Log($"  - {mask}");
+            }
+        }
+        Debug.Log("==============================================");
     }
 
     /// <summary>
@@ -86,7 +156,11 @@ public class PlayerMaskManager : MonoBehaviour
     {
         ownedMasks.Clear();
         currentMaskId = defaultMaskId;
-        Debug.Log("[Mask] 所有面具已重置，当前面具: " + currentMaskId);
+        if (enableDebug)
+        {
+            Debug.Log("[PlayerMaskManager] 所有面具已重置");
+            PrintStatus();
+        }
     }
 
     // 确保在编辑器中重新进入Play Mode时重置静态变量

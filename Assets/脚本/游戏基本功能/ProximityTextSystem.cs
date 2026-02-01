@@ -7,6 +7,7 @@ using TMPro;
 /// 接近显示文字系统
 /// 当玩家靠近 Collider 时，对应的文字渐渐显示
 /// 离开时渐渐消失
+/// 支持面具要求
 /// </summary>
 public class ProximityTextSystem : MonoBehaviour
 {
@@ -18,6 +19,13 @@ public class ProximityTextSystem : MonoBehaviour
         
         [Tooltip("要显示的文字（TextMeshProUGUI）")]
         public TextMeshProUGUI text;
+        
+        [Header("面具要求（可选）")]
+        [Tooltip("是否需要特定面具才显示")]
+        public bool requireMask = false;
+        
+        [Tooltip("需要的面具ID")]
+        public string requiredMaskId;
         
         [HideInInspector]
         public bool playerInside = false;
@@ -86,9 +94,12 @@ public class ProximityTextSystem : MonoBehaviour
 
             // 检测玩家是否在 Collider 内
             bool isInside = IsPlayerInsideCollider(pair.triggerCollider);
+            
+            // 检查面具要求
+            bool shouldShow = isInside && CheckMaskRequirement(pair);
 
             // 更新透明度
-            if (isInside)
+            if (shouldShow)
             {
                 // 淡入
                 pair.currentAlpha = Mathf.MoveTowards(pair.currentAlpha, 1f, fadeInSpeed * Time.deltaTime);
@@ -102,6 +113,27 @@ public class ProximityTextSystem : MonoBehaviour
             SetTextAlpha(pair.text, pair.currentAlpha);
             pair.playerInside = isInside;
         }
+    }
+
+    /// <summary>
+    /// 检查面具要求是否满足
+    /// </summary>
+    private bool CheckMaskRequirement(ProximityPair pair)
+    {
+        // 不需要面具
+        if (!pair.requireMask || string.IsNullOrEmpty(pair.requiredMaskId))
+        {
+            return true;
+        }
+
+        // 检查 PlayerMaskManager
+        if (PlayerMaskManager.Instance == null)
+        {
+            return false;
+        }
+
+        // 检查当前佩戴的面具是否匹配
+        return PlayerMaskManager.Instance.currentMaskId == pair.requiredMaskId;
     }
 
     private bool IsPlayerInsideCollider(Collider2D collider)

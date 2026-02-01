@@ -38,8 +38,17 @@ public class MaskUI : MonoBehaviour
     void Update()
     {
         // 检查单例是否存在
-        if (PlayerMaskManager.Instance == null || MaskDatabase.Instance == null)
+        if (PlayerMaskManager.Instance == null)
         {
+            if (enableDebug && Time.frameCount % 60 == 0) 
+                Debug.LogWarning("[MaskUI] PlayerMaskManager.Instance 为空！");
+            return;
+        }
+        
+        if (MaskDatabase.Instance == null)
+        {
+            if (enableDebug && Time.frameCount % 60 == 0) 
+                Debug.LogWarning("[MaskUI] MaskDatabase.Instance 为空！");
             return;
         }
 
@@ -48,6 +57,7 @@ public class MaskUI : MonoBehaviour
         // 只有当面具ID改变时才更新
         if (current == lastMaskId) return;
 
+        if (enableDebug) Debug.Log($"[MaskUI] 检测到面具变化: {lastMaskId} → {current}");
         UpdateMaskIcon(current);
     }
 

@@ -346,6 +346,59 @@ Transform:
   - {fileID: 199981173}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &160656442
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 160656444}
+  - component: {fileID: 160656443}
+  m_Layer: 0
+  m_Name: "\u9762\u5177\u7CFB\u7EDF"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &160656443
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 160656442}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23fb1fc2864d0488dbf64159e523dc7a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  masks:
+  - maskId: Mask1
+    icon: {fileID: -7935230736950799002, guid: a342cd759d8ff498886b08538114315b, type: 3}
+  - maskId: Mask2
+    icon: {fileID: 5421768680713299036, guid: 3bd794b61eff349f590baecd470c2811, type: 3}
+  - maskId: Mask3
+    icon: {fileID: 3961224324743752471, guid: b2f84c6d7aeca4c61be16355692fd849, type: 3}
+  - maskId: Mask4
+    icon: {fileID: 365327503207165475, guid: 073815dc5695b485480aa85ed2fed70d, type: 3}
+--- !u!4 &160656444
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 160656442}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -34.299133, y: -14.09801, z: 0.824801}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &172525310
 GameObject:
   m_ObjectHideFlags: 0
@@ -613,11 +666,16 @@ MonoBehaviour:
   triggerTag: Player
   requireKeyPress: 0
   confirmKey: 101
+  requireMask: 0
+  requiredMaskId: 
+  noMaskHint: {fileID: 0}
+  hintDuration: 2
   fadeColor: {r: 0, g: 0, b: 0, a: 1}
   fadeOutDuration: 0.5
   fadeInDuration: 0.5
   waitAfterLoad: 0.3
   transitionSound: {fileID: 0}
+  noMaskSound: {fileID: 0}
 --- !u!212 &199981176
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -1429,6 +1487,8 @@ MonoBehaviour:
   pairs:
   - triggerCollider: {fileID: 1074634784}
     text: {fileID: 1064495084}
+    requireMask: 0
+    requiredMaskId: 
     playerInside: 0
     currentAlpha: 0
   fadeInSpeed: 2
@@ -2008,15 +2068,15 @@ MonoBehaviour:
 
 '
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 5302535af1044152a457ed104f1f4b91, type: 2}
-  m_sharedMaterial: {fileID: 2164040, guid: 5302535af1044152a457ed104f1f4b91, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: f9067dae0df484ee7b8401b364136ad3, type: 2}
+  m_sharedMaterial: {fileID: -7750309689299292830, guid: f9067dae0df484ee7b8401b364136ad3, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4278190297
-  m_fontColor: {r: 0.8490566, g: 0, b: 0, a: 1}
+    rgba: 4278254847
+  m_fontColor: {r: 1, g: 0.9882353, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -2849,15 +2909,15 @@ MonoBehaviour:
       m_Calls: []
   m_text: NPC Talking
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 5302535af1044152a457ed104f1f4b91, type: 2}
-  m_sharedMaterial: {fileID: 2164040, guid: 5302535af1044152a457ed104f1f4b91, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: f9067dae0df484ee7b8401b364136ad3, type: 2}
+  m_sharedMaterial: {fileID: -7750309689299292830, guid: f9067dae0df484ee7b8401b364136ad3, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4278190297
-  m_fontColor: {r: 0.8490566, g: 0, b: 0, a: 1}
+    rgba: 4278254847
+  m_fontColor: {r: 1, g: 0.9882353, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -2986,15 +3046,15 @@ MonoBehaviour:
       m_Calls: []
   m_text: Press E to talk
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 5302535af1044152a457ed104f1f4b91, type: 2}
-  m_sharedMaterial: {fileID: 2164040, guid: 5302535af1044152a457ed104f1f4b91, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: f9067dae0df484ee7b8401b364136ad3, type: 2}
+  m_sharedMaterial: {fileID: -7750309689299292830, guid: f9067dae0df484ee7b8401b364136ad3, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4278190297
-  m_fontColor: {r: 0.8490566, g: 0, b: 0, a: 1}
+    rgba: 4278254847
+  m_fontColor: {r: 1, g: 0.9882353, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -3529,6 +3589,97 @@ RectTransform:
   m_AnchoredPosition: {x: -960, y: -540.4}
   m_SizeDelta: {x: 16.904785, y: 5.6501465}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &1761089936
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1761089937}
+  - component: {fileID: 1761089940}
+  - component: {fileID: 1761089939}
+  - component: {fileID: 1761089938}
+  m_Layer: 5
+  m_Name: Mask UI
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1761089937
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1761089936}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1967874733}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 803, y: 402}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1761089938
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1761089936}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea8298d01be3a486c83048831021e059, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  iconImage: {fileID: 1761089939}
+  hideWhenNoIcon: 1
+  enableDebug: 0
+--- !u!114 &1761089939
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1761089936}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: -7935230736950799002, guid: a342cd759d8ff498886b08538114315b, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &1761089940
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1761089936}
+  m_CullTransparentMesh: 1
 --- !u!1 &1783029658
 GameObject:
   m_ObjectHideFlags: 0
@@ -4156,6 +4307,7 @@ RectTransform:
   - {fileID: 264644490}
   - {fileID: 1416469886}
   - {fileID: 486592119}
+  - {fileID: 1761089937}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -4551,7 +4703,7 @@ MonoBehaviour:
   - The truth would be enough on its own.
   afterDialogueLines: []
   rewardMaskAfterTalk: 1
-  rewardMaskId: xuesheng
+  rewardMaskId: Mask4
   disappearAfterDialogue: 0
   disappearSound: {fileID: 0}
   disappearDuration: 1
@@ -4936,3 +5088,4 @@ SceneRoots:
   - {fileID: 679708970}
   - {fileID: 1109233549}
   - {fileID: 800794114}
+  - {fileID: 160656444}
