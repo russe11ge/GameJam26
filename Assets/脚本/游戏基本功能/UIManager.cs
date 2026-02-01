@@ -4,8 +4,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.Events;
 
 /// <summary>
-/// UI管理器 - 每个场景独立
-/// 使用 TransitionManager 处理场景过渡动画
+/// UI管理器 - 包含暂停菜单、黑色遮罩过渡、返回主菜单
 /// </summary>
 public class UIManager : MonoBehaviour
 {
@@ -15,16 +14,6 @@ public class UIManager : MonoBehaviour
     #endregion
 
     #region Inspector设置
-    [Header("=== 过渡动画设置 ===")]
-    [Tooltip("过渡颜色")]
-    public Color transitionColor = Color.black;
-    
-    [Tooltip("淡出动画时长")]
-    public float fadeOutDuration = 0.5f;
-    
-    [Tooltip("淡入动画时长")]
-    public float fadeInDuration = 0.5f;
-
     [Header("=== 暂停菜单设置 ===")]
     [Tooltip("启用暂停菜单")]
     public bool enablePauseMenu = true;
@@ -38,12 +27,29 @@ public class UIManager : MonoBehaviour
     [Tooltip("暂停菜单过渡时长")]
     public float pauseMenuTransitionDuration = 0.3f;
 
+    [Header("=== 黑色遮罩（手动添加）===")]
+    [Tooltip("黑色遮罩 GameObject（需要有 CanvasGroup）")]
+    public GameObject blackOverlay;
+    
+    [Tooltip("返回主菜单时淡出时长")]
+    public float fadeOutDuration = 0.8f;
+
+    [Header("=== 主菜单设置 ===")]
+    [Tooltip("主菜单场景名称")]
+    public string mainMenuSceneName = "1. 主菜单";
+    
+    [Tooltip("主菜单淡入时长")]
+    public float mainMenuFadeInDuration = 0.5f;
+
     [Header("=== 重置游戏设置 ===")]
     [Tooltip("重置后进入的场景名称")]
     public string resetSceneName = "1. 主菜单";
     
     [Tooltip("重置后进入的场景索引（如果场景名称为空则使用索引）")]
     public int resetSceneIndex = 0;
+
+    [Header("=== Debug ===")]
+    public bool enableDebug = false;
     #endregion
 
     #region 私有变量
@@ -51,6 +57,7 @@ public class UIManager : MonoBehaviour
     private bool isTransitioning = false;
     private bool isPauseTransitioning = false;
     private CanvasGroup pauseMenuCanvasGroup;
+    private CanvasGroup blackOverlayCanvasGroup;
     
     public UnityAction OnGamePaused;
     public UnityAction OnGameResumed;
@@ -71,7 +78,7 @@ public class UIManager : MonoBehaviour
 
     private void Update()
     {
-        if (enablePauseMenu && Input.GetKeyDown(pauseKey))
+        if (enablePauseMenu && Input.GetKeyDown(pauseKey) && !isTransitioning)
         {
             TogglePause();
         }
@@ -89,11 +96,26 @@ public class UIManager : MonoBehaviour
     #region 初始化
     private void InitializePanels()
     {
+        // 初始化暂停菜单
         if (pauseMenuPanel != null)
         {
             pauseMenuCanvasGroup = pauseMenuPanel.GetComponent<CanvasGroup>();
             if (pauseMenuCanvasGroup == null)
                 pauseMenuCanvasGroup = pauseMenuPanel.AddComponent<CanvasGroup>();
+        }
+
+        // 初始化黑色遮罩
+        if (blackOverlay != null)
+        {
+            blackOverlayCanvasGroup = blackOverlay.GetComponent<CanvasGroup>();
+            if (blackOverlayCanvasGroup == null)
+                blackOverlayCanvasGroup = blackOverlay.AddComponent<CanvasGroup>();
+            
+            // 初始隐藏，不阻挡鼠标
+            blackOverlayCanvasGroup.alpha = 0f;
+            blackOverlayCanvasGroup.blocksRaycasts = false;
+            blackOverlayCanvasGroup.interactable = false;
+            blackOverlay.SetActive(true);
         }
     }
 
@@ -113,16 +135,83 @@ public class UIManager : MonoBehaviour
 
     // ==================== Button OnClick 可用方法 ====================
 
-    #region 【场景加载 - 无参数】
+    #region 【返回主菜单 - 黑色过渡】
 
     /// <summary>
-    /// 加载主菜单（场景0）
+    /// 返回主菜单（带黑色遮罩过渡）
+    /// </summary>
+    public void GoToMainMenu()
+    {
+        if (isTransitioning) return;
+
+        if (enableDebug) Debug.Log("[UIManager] 返回主菜单");
+
+        isTransitioning = true;
+        Time.timeScale = 1f;
+
+        StartCoroutine(TransitionToMainMenu());
+    }
+
+    private IEnumerator TransitionToMainMenu()
+    {
+        // 记录暂停菜单初始 alpha
+        float pauseMenuStartAlpha = 0f;
+        if (pauseMenuCanvasGroup != null && pauseMenuPanel != null && pauseMenuPanel.activeSelf)
+        {
+            pauseMenuStartAlpha = pauseMenuCanvasGroup.alpha;
+        }
+
+        if (enableDebug) Debug.Log("[UIManager] 开始黑屏过渡");
+
+        // 同时：黑色遮罩出现 + 暂停菜单消失
+        float elapsed = 0f;
+        while (elapsed < fadeOutDuration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float progress = Mathf.Clamp01(elapsed / fadeOutDuration);
+
+            // 黑色遮罩渐渐出现
+            if (blackOverlayCanvasGroup != null)
+            {
+                blackOverlayCanvasGroup.alpha = progress;
+            }
+
+            // 暂停菜单渐渐消失
+            if (pauseMenuCanvasGroup != null && pauseMenuStartAlpha > 0)
+            {
+                pauseMenuCanvasGroup.alpha = Mathf.Lerp(pauseMenuStartAlpha, 0f, progress);
+            }
+
+            yield return null;
+        }
+
+        // 确保完全黑屏
+        if (blackOverlayCanvasGroup != null)
+        {
+            blackOverlayCanvasGroup.alpha = 1f;
+        }
+
+        if (enableDebug) Debug.Log("[UIManager] 黑屏完成，加载主菜单");
+
+        // 通知主菜单需要淡入
+        MainMenuController.SetNeedsFadeIn(mainMenuFadeInDuration);
+
+        // 加载主菜单
+        SceneManager.LoadScene(mainMenuSceneName);
+    }
+
+    #endregion
+
+    #region 【场景加载】
+
+    /// <summary>
+    /// 加载主菜单（场景0）- 简单加载，无过渡
     /// </summary>
     public void LoadMainMenu()
     {
         Time.timeScale = 1f;
         isPaused = false;
-        LoadSceneByIndex(0);
+        SceneManager.LoadScene(0);
     }
 
     /// <summary>
@@ -133,7 +222,7 @@ public class UIManager : MonoBehaviour
         int next = SceneManager.GetActiveScene().buildIndex + 1;
         if (next < SceneManager.sceneCountInBuildSettings)
         {
-            LoadSceneByIndex(next);
+            SceneManager.LoadScene(next);
         }
     }
 
@@ -145,7 +234,7 @@ public class UIManager : MonoBehaviour
         int prev = SceneManager.GetActiveScene().buildIndex - 1;
         if (prev >= 0)
         {
-            LoadSceneByIndex(prev);
+            SceneManager.LoadScene(prev);
         }
     }
 
@@ -156,32 +245,17 @@ public class UIManager : MonoBehaviour
     {
         Time.timeScale = 1f;
         isPaused = false;
-        LoadSceneByIndex(SceneManager.GetActiveScene().buildIndex);
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
-
-    #endregion
-
-    #region 【场景加载 - 带参数】
 
     /// <summary>
     /// 通过场景名称加载
     /// </summary>
     public void LoadScene(string sceneName)
     {
-        if (isTransitioning) return;
-        
         Time.timeScale = 1f;
         isPaused = false;
-        isTransitioning = true;
-        
-        if (TransitionManager.Instance != null)
-        {
-            TransitionManager.Instance.LoadScene(sceneName, transitionColor, fadeOutDuration, fadeInDuration);
-        }
-        else
-        {
-            SceneManager.LoadScene(sceneName);
-        }
+        SceneManager.LoadScene(sceneName);
     }
 
     /// <summary>
@@ -189,20 +263,9 @@ public class UIManager : MonoBehaviour
     /// </summary>
     public void LoadSceneByIndex(int sceneIndex)
     {
-        if (isTransitioning) return;
-        
         Time.timeScale = 1f;
         isPaused = false;
-        isTransitioning = true;
-        
-        if (TransitionManager.Instance != null)
-        {
-            TransitionManager.Instance.LoadSceneByIndex(sceneIndex, transitionColor, fadeOutDuration, fadeInDuration);
-        }
-        else
-        {
-            SceneManager.LoadScene(sceneIndex);
-        }
+        SceneManager.LoadScene(sceneIndex);
     }
 
     #endregion
@@ -223,44 +286,8 @@ public class UIManager : MonoBehaviour
         
         Debug.Log("游戏已重置");
         
-        if (!string.IsNullOrEmpty(resetSceneName))
-        {
-            LoadScene(resetSceneName);
-        }
-        else
-        {
-            LoadSceneByIndex(resetSceneIndex);
-        }
-    }
-
-    /// <summary>
-    /// 重置游戏并加载指定场景（通过场景名）
-    /// </summary>
-    public void ResetGameToScene(string sceneName)
-    {
-        Time.timeScale = 1f;
-        isPaused = false;
-        
-        PlayerPrefs.DeleteAll();
-        PlayerPrefs.Save();
-        OnGameReset?.Invoke();
-        
-        LoadScene(sceneName);
-    }
-
-    /// <summary>
-    /// 重置游戏并加载指定场景（通过索引）
-    /// </summary>
-    public void ResetGameToSceneIndex(int sceneIndex)
-    {
-        Time.timeScale = 1f;
-        isPaused = false;
-        
-        PlayerPrefs.DeleteAll();
-        PlayerPrefs.Save();
-        OnGameReset?.Invoke();
-        
-        LoadSceneByIndex(sceneIndex);
+        // 使用黑色过渡返回主菜单
+        GoToMainMenu();
     }
 
     #endregion
@@ -272,7 +299,7 @@ public class UIManager : MonoBehaviour
     /// </summary>
     public void TogglePause()
     {
-        if (isPauseTransitioning) return;
+        if (isPauseTransitioning || isTransitioning) return;
         
         if (isPaused)
             ResumeGame();
@@ -285,7 +312,9 @@ public class UIManager : MonoBehaviour
     /// </summary>
     public void PauseGame()
     {
-        if (isPauseTransitioning || isPaused) return;
+        if (isPauseTransitioning || isPaused || isTransitioning) return;
+        
+        if (enableDebug) Debug.Log("[UIManager] 暂停游戏");
         
         isPaused = true;
         Time.timeScale = 0f;
@@ -303,7 +332,9 @@ public class UIManager : MonoBehaviour
     /// </summary>
     public void ResumeGame()
     {
-        if (isPauseTransitioning || !isPaused) return;
+        if (isPauseTransitioning || !isPaused || isTransitioning) return;
+        
+        if (enableDebug) Debug.Log("[UIManager] 继续游戏");
         
         if (pauseMenuPanel != null)
         {
