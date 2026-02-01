@@ -22,5 +22,8 @@ public class PlayerMove2D : MonoBehaviour
     {
         // 用 Rigidbody 移动角色
         rb.linearVelocity = new Vector2(moveInput * moveSpeed, rb.linearVelocity.y);
+        if (DialogueManager.Instance != null && DialogueManager.Instance.IsTalking())
+            return;
     }
+    
 }

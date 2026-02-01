@@ -13,7 +13,7 @@ EditorBuildSettings:
     guid: 9210ae0bb23d54763b5ff3281fa0666c
   - enabled: 1
     path: "Assets/\u573A\u666F/2. \u5927\u8857.unity"
-    guid: 6c19387d269e74bfe857d3e627d63139
+    guid: b4af1fb8e75e24dfa841b2de53ed2f56
   - enabled: 1
     path: "Assets/\u573A\u666F/3. \u64CD\u573A.unity"
     guid: 88532199327274f1e802c62e7992a015
@@ -24,10 +24,13 @@ EditorBuildSettings:
     path: "Assets/\u573A\u666F/5. \u8B66\u5C40.unity"
     guid: f3ede4bd9172b4a62abcb8b6365dae6d
   - enabled: 1
-    path: "Assets/\u573A\u666F/6. \u5BBF\u820D.unity"
+    path: "Assets/\u573A\u666F/6. \u5BBF\u820D\u8D70\u5ECA.unity"
     guid: aea9eb6ba55b64dc4bb19b7abbb123e3
   - enabled: 1
-    path: "Assets/\u573A\u666F/7. \u7ED3\u5C40.unity"
+    path: "Assets/\u573A\u666F/7. \u5BBF\u820D\u623F\u95F4.unity"
+    guid: 902f596716ccc4c5eae59cbb0ff3bab6
+  - enabled: 1
+    path: "Assets/\u573A\u666F/8. \u7ED3\u5C40.unity"
     guid: 98b1cada074e0490991dcfea756ac248
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
