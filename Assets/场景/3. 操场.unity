@@ -1592,7 +1592,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   targetSceneName: "2. \u5927\u8857"
-  targetSpawnPointID: 2-4
+  targetSpawnPointID: 2-3
   triggerTag: Player
   requireKeyPress: 0
   confirmKey: 101
@@ -4372,6 +4372,7 @@ MonoBehaviour:
   transitionColor: {r: 1, g: 1, b: 1, a: 1}
   fadeOutDuration: 1
   fadeInDuration: 1
+  uiToHide: []
 --- !u!1 &1660519166
 GameObject:
   m_ObjectHideFlags: 0
