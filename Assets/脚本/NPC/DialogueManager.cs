@@ -21,10 +21,13 @@ public class DialogueManager : MonoBehaviour
     [Header("Input")]
     public KeyCode advanceKey = KeyCode.Space;
 
-    [Header("Typewriter (Optional)")]
-    public bool useTypewriter = false;
-    [Range(0.005f, 0.08f)]
-    public float charDelay = 0.02f;
+    [Header("Typewriter")]
+    [Tooltip("启用打字机效果")]
+    public bool useTypewriter = true;
+    
+    [Tooltip("每个字符的显示间隔（秒）")]
+    [Range(0.01f, 0.1f)]
+    public float charDelay = 0.03f;
 
     // 内部状态
     private readonly Queue<string> lines = new Queue<string>();
@@ -32,6 +35,7 @@ public class DialogueManager : MonoBehaviour
     private bool isTyping = false;
 
     private string currentLine = "";
+    private int totalCharacters = 0;
     private Coroutine typingCoroutine;
 
     private Action onDialogueComplete;
@@ -65,7 +69,7 @@ public class DialogueManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 开始对话：传入台词列表 + 可选结束回调（用于解锁面具/推进关卡）
+    /// 开始对话
     /// </summary>
     public void StartDialogue(List<string> dialogueLines, Action onComplete = null)
     {
@@ -75,9 +79,7 @@ public class DialogueManager : MonoBehaviour
             return;
         }
 
-        // 终止正在进行的对话（避免重入）
         ForceStopDialogue();
-
         ShowUI();
 
         lines.Clear();
@@ -91,12 +93,12 @@ public class DialogueManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 对外：是否正在对话（用来冻结玩家移动）
+    /// 是否正在对话
     /// </summary>
     public bool IsTalking() => isTalking;
 
     /// <summary>
-    /// 强制停止（比如切场景、紧急中断）
+    /// 强制停止对话
     /// </summary>
     public void ForceStopDialogue()
     {
@@ -107,6 +109,7 @@ public class DialogueManager : MonoBehaviour
         isTyping = false;
         isTalking = false;
         currentLine = "";
+        totalCharacters = 0;
         lines.Clear();
         onDialogueComplete = null;
 
@@ -117,7 +120,6 @@ public class DialogueManager : MonoBehaviour
 
     private void DisplayNextLine()
     {
-        // 没有下一句：结束
         if (lines.Count == 0)
         {
             EndDialogue();
@@ -128,10 +130,13 @@ public class DialogueManager : MonoBehaviour
 
         if (!useTypewriter)
         {
+            // 直接显示全部
             dialogueText.text = currentLine;
+            dialogueText.maxVisibleCharacters = currentLine.Length;
         }
         else
         {
+            // 打字机效果
             StartTypeLine(currentLine);
         }
     }
@@ -146,10 +151,10 @@ public class DialogueManager : MonoBehaviour
         typingCoroutine = null;
         isTyping = false;
         currentLine = "";
+        totalCharacters = 0;
 
         HideUI();
 
-        // 触发结束回调（解锁面具/推进线性）
         var cb = onDialogueComplete;
         onDialogueComplete = null;
         cb?.Invoke();
@@ -158,22 +163,29 @@ public class DialogueManager : MonoBehaviour
     private void ShowUI()
     {
         if (bottomBarRoot != null) bottomBarRoot.SetActive(true);
-        if (dialogueText != null) dialogueText.text = "";
+        if (dialogueText != null)
+        {
+            dialogueText.text = "";
+            dialogueText.maxVisibleCharacters = 0;
+        }
         if (hintText != null)
         {
             hintText.gameObject.SetActive(true);
-            // 你可以在HintText里写：Press [Space]
         }
     }
 
     private void HideUI()
     {
-        if (dialogueText != null) dialogueText.text = "";
+        if (dialogueText != null)
+        {
+            dialogueText.text = "";
+            dialogueText.maxVisibleCharacters = 0;
+        }
         if (hintText != null) hintText.gameObject.SetActive(false);
         if (bottomBarRoot != null) bottomBarRoot.SetActive(false);
     }
 
-    // -------- Typewriter --------
+    // -------- Typewriter (using maxVisibleCharacters) --------
 
     private void StartTypeLine(string line)
     {
@@ -186,11 +198,16 @@ public class DialogueManager : MonoBehaviour
     private IEnumerator TypeLineCoroutine(string line)
     {
         isTyping = true;
-        dialogueText.text = "";
+        
+        // 设置完整文本，但隐藏所有字符
+        dialogueText.text = line;
+        totalCharacters = line.Length;
+        dialogueText.maxVisibleCharacters = 0;
 
-        for (int i = 0; i < line.Length; i++)
+        // 逐字显示
+        for (int i = 1; i <= totalCharacters; i++)
         {
-            dialogueText.text += line[i];
+            dialogueText.maxVisibleCharacters = i;
             yield return new WaitForSeconds(charDelay);
         }
 
@@ -206,6 +223,7 @@ public class DialogueManager : MonoBehaviour
         typingCoroutine = null;
         isTyping = false;
 
-        dialogueText.text = currentLine;
+        // 显示所有字符
+        dialogueText.maxVisibleCharacters = totalCharacters;
     }
 }

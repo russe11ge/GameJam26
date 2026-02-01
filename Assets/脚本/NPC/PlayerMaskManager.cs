@@ -27,4 +27,13 @@ public class PlayerMaskManager : MonoBehaviour
     {
         return ownedMasks.Contains(maskId);
     }
+
+    /// <summary>
+    /// 重置所有面具数据
+    /// </summary>
+    public void ResetAllMasks()
+    {
+        ownedMasks.Clear();
+        Debug.Log("[Mask] 所有面具已重置");
+    }
 }

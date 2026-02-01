@@ -1,191 +1,301 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class NPCConditionalDialogue : MonoBehaviour
 {
-    [Header("Interaction")]
+    [Header("=== 交互方式 ===")]
+    public InteractionMode interactionMode = InteractionMode.KeyPress;
     public KeyCode interactKey = KeyCode.E;
-    public bool playerMustBeInRange = true;
 
-    [Header("Condition")]
+    public enum InteractionMode
+    {
+        KeyPress,
+        AutoOnEnter
+    }
+
+    [Header("=== 玩家控制 ===")]
+    public bool freezePlayerDuringDialogue = true;
+
+    [Header("=== 条件 ===")]
     public string requiredMaskId;
     public bool silentWhenLocked = true;
 
-    [Header("Dialogue (Locked)")]
+    [Header("=== 对话内容 (锁定时) ===")]
     [TextArea(2, 4)]
     public List<string> lockedLines = new List<string>() { "……（他没有回应你）" };
 
-    [Header("Dialogue (Unlocked)")]
+    [Header("=== 对话内容 (首次) ===")]
     [TextArea(2, 4)]
     public List<string> mainLines = new List<string>();
 
-    [Header("Reward After Dialogue (Optional)")]
+    [Header("=== 对话内容 (后续) ===")]
+    [TextArea(2, 4)]
+    public List<string> afterDialogueLines = new List<string>();
+
+    [Header("=== 奖励 (可选) ===")]
     public bool rewardMaskAfterTalk = false;
     public string rewardMaskId;
-    public bool triggerOnce = true;
 
-    [Header("Debug")]
+    [Header("=== 对话后立即消失 ===")]
+    [Tooltip("对话完成后立即消失（渐变透明）")]
+    public bool disappearAfterDialogue = false;
+    
+    [Tooltip("消失时播放的音效")]
+    public AudioClip disappearSound;
+    
+    [Tooltip("消失渐变时长")]
+    public float disappearDuration = 1f;
+
+    [Header("=== 离开场景后永久消失 ===")]
+    [Tooltip("对话完成后，离开场景再回来时消失")]
+    public bool disappearAfterLeaveScene = false;
+    
+    [Tooltip("此NPC的唯一ID")]
+    public string npcUniqueId;
+
+    [Header("=== Debug ===")]
     public bool enableDebug = true;
 
     private bool playerInRange = false;
-    private bool hasTriggered = false;
+    private bool hasCompletedFirstDialogue = false;
+    private bool isDisappearing = false;
+    private GameObject playerObject;
+    private SpriteRenderer spriteRenderer;
+    private AudioSource audioSource;
+
+    // 记录永久消失的NPC
+    private static HashSet<string> disappearedNPCs = new HashSet<string>();
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ResetStatics()
+    {
+        // 不清除，保持游戏会话内状态
+    }
 
     void Start()
     {
-        if (enableDebug)
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        audioSource = GetComponent<AudioSource>();
+        
+        if (audioSource == null && disappearSound != null)
         {
-            Debug.Log($"[NPC:{gameObject.name}] 初始化完成");
-            Debug.Log($"[NPC:{gameObject.name}] 交互键: {interactKey}");
-            Debug.Log($"[NPC:{gameObject.name}] 需要在范围内: {playerMustBeInRange}");
-            Debug.Log($"[NPC:{gameObject.name}] mainLines 数量: {mainLines.Count}");
-            
-            // 检查 Collider
-            Collider2D col = GetComponent<Collider2D>();
-            if (col == null)
-            {
-                Debug.LogError($"[NPC:{gameObject.name}] ❌ 没有 Collider2D！无法检测玩家进入范围");
-            }
-            else if (!col.isTrigger)
-            {
-                Debug.LogError($"[NPC:{gameObject.name}] ❌ Collider2D 没有勾选 Is Trigger！");
-            }
-            else
-            {
-                Debug.Log($"[NPC:{gameObject.name}] ✓ Collider2D 设置正确");
-            }
-            
-            // 检查 DialogueManager
-            if (DialogueManager.Instance == null)
-            {
-                Debug.LogWarning($"[NPC:{gameObject.name}] ⚠ DialogueManager.Instance 暂时为 null（可能还没初始化）");
-            }
+            audioSource = gameObject.AddComponent<AudioSource>();
+            audioSource.playOnAwake = false;
+        }
+
+        // 检查是否已永久消失
+        if (!string.IsNullOrEmpty(npcUniqueId) && disappearedNPCs.Contains(npcUniqueId))
+        {
+            if (enableDebug) Debug.Log($"[NPC:{gameObject.name}] 已永久消失，禁用");
+            DisableNPCImmediate();
+            return;
         }
     }
 
     void Update()
     {
-        // 始终检测按键（即使不在范围内也报告）
-        if (Input.GetKeyDown(interactKey))
+        if (isDisappearing) return;
+        
+        if (DialogueManager.Instance != null && DialogueManager.Instance.IsTalking())
+            return;
+
+        if (StoryRevealManager.Instance != null && StoryRevealManager.Instance.IsRevealing())
+            return;
+
+        if (interactionMode == InteractionMode.KeyPress)
         {
-            if (enableDebug)
+            if (Input.GetKeyDown(interactKey))
             {
-                Debug.Log($"═══════════════════════════════════════");
-                Debug.Log($"[NPC:{gameObject.name}] 按下了 {interactKey}");
-                Debug.Log($"[NPC:{gameObject.name}] 状态检查:");
-                Debug.Log($"  - playerInRange: {playerInRange}");
-                Debug.Log($"  - playerMustBeInRange: {playerMustBeInRange}");
-                Debug.Log($"  - hasTriggered: {hasTriggered}");
-                Debug.Log($"  - triggerOnce: {triggerOnce}");
-                Debug.Log($"  - DialogueManager.Instance: {(DialogueManager.Instance != null ? "存在" : "NULL")}");
-                if (DialogueManager.Instance != null)
-                {
-                    Debug.Log($"  - IsTalking: {DialogueManager.Instance.IsTalking()}");
-                }
+                if (!playerInRange) return;
+                TryTalk();
             }
-
-            // 检查各种条件
-            if (triggerOnce && hasTriggered)
-            {
-                if (enableDebug) Debug.Log($"[NPC:{gameObject.name}] ⛔ 跳过：已触发过（triggerOnce=true）");
-                return;
-            }
-
-            if (playerMustBeInRange && !playerInRange)
-            {
-                if (enableDebug) Debug.Log($"[NPC:{gameObject.name}] ⛔ 跳过：玩家不在范围内");
-                return;
-            }
-
-            if (DialogueManager.Instance == null)
-            {
-                if (enableDebug) Debug.LogError($"[NPC:{gameObject.name}] ❌ DialogueManager.Instance 为 null！");
-                return;
-            }
-
-            if (DialogueManager.Instance.IsTalking())
-            {
-                if (enableDebug) Debug.Log($"[NPC:{gameObject.name}] ⛔ 跳过：正在对话中");
-                return;
-            }
-
-            if (enableDebug) Debug.Log($"[NPC:{gameObject.name}] ✓ 所有条件通过，开始对话");
-            TryTalk();
         }
     }
 
     private void TryTalk()
     {
-        if (enableDebug) Debug.Log($"[NPC:{gameObject.name}] TryTalk 执行中...");
-        
+        if (DialogueManager.Instance == null) return;
+
         bool unlocked = true;
 
         if (!string.IsNullOrEmpty(requiredMaskId))
         {
-            if (enableDebug) Debug.Log($"[NPC:{gameObject.name}] 检查面具: {requiredMaskId}");
-            
             if (PlayerMaskManager.Instance == null)
-            {
-                if (enableDebug) Debug.LogWarning($"[NPC:{gameObject.name}] PlayerMaskManager.Instance 为 null");
                 unlocked = false;
-            }
             else
-            {
                 unlocked = PlayerMaskManager.Instance.HasMask(requiredMaskId);
-                if (enableDebug) Debug.Log($"[NPC:{gameObject.name}] 玩家拥有面具 '{requiredMaskId}': {unlocked}");
-            }
         }
 
+        // 未解锁
         if (!unlocked)
         {
-            if (silentWhenLocked)
-            {
-                if (enableDebug) Debug.Log($"[NPC:{gameObject.name}] ⛔ 未解锁 + 静默模式，不说话");
-                return;
-            }
+            if (silentWhenLocked) return;
 
-            if (enableDebug) Debug.Log($"[NPC:{gameObject.name}] 播放锁定对白 ({lockedLines.Count} 句)");
-            DialogueManager.Instance.StartDialogue(lockedLines);
+            if (freezePlayerDuringDialogue) FreezePlayer(true);
+            
+            DialogueManager.Instance.StartDialogue(lockedLines, () => {
+                if (freezePlayerDuringDialogue) FreezePlayer(false);
+            });
             return;
         }
 
-        if (mainLines.Count == 0)
+        // 已完成首次对话
+        if (hasCompletedFirstDialogue)
         {
-            if (enableDebug) Debug.LogWarning($"[NPC:{gameObject.name}] ❌ mainLines 为空！没有对话内容");
+            if (afterDialogueLines.Count == 0) return;
+
+            if (freezePlayerDuringDialogue) FreezePlayer(true);
+
+            DialogueManager.Instance.StartDialogue(afterDialogueLines, () => {
+                if (freezePlayerDuringDialogue) FreezePlayer(false);
+            });
             return;
         }
-        
-        if (enableDebug) Debug.Log($"[NPC:{gameObject.name}] ▶ 播放主对白 ({mainLines.Count} 句)");
-        DialogueManager.Instance.StartDialogue(mainLines, OnDialogueFinished);
-        hasTriggered = true;
+
+        // 首次对话
+        if (mainLines.Count == 0) return;
+
+        if (freezePlayerDuringDialogue) FreezePlayer(true);
+
+        DialogueManager.Instance.StartDialogue(mainLines, OnFirstDialogueFinished);
     }
 
-    private void OnDialogueFinished()
+    private void OnFirstDialogueFinished()
     {
-        if (enableDebug) Debug.Log($"[NPC:{gameObject.name}] 对话结束回调");
+        if (enableDebug) Debug.Log($"[NPC:{gameObject.name}] 首次对话结束");
         
+        hasCompletedFirstDialogue = true;
+        
+        if (freezePlayerDuringDialogue) FreezePlayer(false);
+
+        // 奖励面具
         if (rewardMaskAfterTalk && !string.IsNullOrEmpty(rewardMaskId))
         {
             if (PlayerMaskManager.Instance != null)
             {
                 PlayerMaskManager.Instance.UnlockMask(rewardMaskId);
-                if (enableDebug) Debug.Log($"[NPC:{gameObject.name}] 🎁 奖励面具: {rewardMaskId}");
             }
-            else
+        }
+
+        // 标记为永久消失（离开场景后生效）
+        if (disappearAfterLeaveScene && !string.IsNullOrEmpty(npcUniqueId))
+        {
+            disappearedNPCs.Add(npcUniqueId);
+            if (enableDebug) Debug.Log($"[NPC:{gameObject.name}] 已标记为永久消失");
+        }
+
+        // 触发故事揭示
+        var storyTrigger = GetComponent<NPCStoryRevealTrigger>();
+        if (storyTrigger != null)
+        {
+            storyTrigger.OnDialogueComplete();
+        }
+
+        // 对话后立即消失
+        if (disappearAfterDialogue)
+        {
+            // 也标记为永久消失
+            if (!string.IsNullOrEmpty(npcUniqueId))
             {
-                Debug.LogError($"[NPC:{gameObject.name}] ❌ 无法奖励面具，PlayerMaskManager 为 null");
+                disappearedNPCs.Add(npcUniqueId);
+            }
+            StartCoroutine(DisappearWithFade());
+        }
+    }
+
+    private IEnumerator DisappearWithFade()
+    {
+        isDisappearing = true;
+        
+        if (enableDebug) Debug.Log($"[NPC:{gameObject.name}] 开始消失");
+
+        // 立即禁用 Collider
+        var colliders = GetComponents<Collider2D>();
+        foreach (var col in colliders)
+        {
+            col.enabled = false;
+        }
+
+        // 播放音效
+        if (disappearSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(disappearSound);
+        }
+
+        // 渐变消失
+        if (spriteRenderer != null)
+        {
+            Color startColor = spriteRenderer.color;
+            float elapsed = 0f;
+
+            while (elapsed < disappearDuration)
+            {
+                elapsed += Time.deltaTime;
+                float alpha = Mathf.Lerp(1f, 0f, elapsed / disappearDuration);
+                spriteRenderer.color = new Color(startColor.r, startColor.g, startColor.b, alpha);
+                yield return null;
+            }
+
+            spriteRenderer.color = new Color(startColor.r, startColor.g, startColor.b, 0f);
+        }
+
+        // 等待音效播放完毕
+        if (disappearSound != null)
+        {
+            yield return new WaitForSeconds(Mathf.Max(0, disappearSound.length - disappearDuration));
+        }
+
+        if (enableDebug) Debug.Log($"[NPC:{gameObject.name}] 消失完成");
+        
+        gameObject.SetActive(false);
+    }
+
+    private void DisableNPCImmediate()
+    {
+        // 直接禁用整个 GameObject
+        gameObject.SetActive(false);
+    }
+
+    private void FreezePlayer(bool freeze)
+    {
+        if (playerObject == null)
+        {
+            playerObject = GameObject.FindGameObjectWithTag("Player");
+        }
+
+        if (playerObject != null)
+        {
+            var moveScript = playerObject.GetComponent<PlayerMove2D>();
+            if (moveScript != null)
+            {
+                moveScript.enabled = !freeze;
+            }
+
+            if (freeze)
+            {
+                var rb = playerObject.GetComponent<Rigidbody2D>();
+                if (rb != null)
+                {
+                    rb.linearVelocity = Vector2.zero;
+                }
             }
         }
     }
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (enableDebug) Debug.Log($"[NPC:{gameObject.name}] OnTriggerEnter2D: {other.gameObject.name} (Tag: {other.tag})");
+        if (!other.CompareTag("Player")) return;
         
-        if (other.CompareTag("Player"))
+        playerInRange = true;
+        playerObject = other.gameObject;
+
+        if (interactionMode == InteractionMode.AutoOnEnter)
         {
-            playerInRange = true;
-            if (enableDebug) Debug.Log($"[NPC:{gameObject.name}] ✓ 玩家进入范围");
+            if (DialogueManager.Instance != null && DialogueManager.Instance.IsTalking())
+                return;
+            TryTalk();
         }
     }
 
@@ -194,7 +304,15 @@ public class NPCConditionalDialogue : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             playerInRange = false;
-            if (enableDebug) Debug.Log($"[NPC:{gameObject.name}] 玩家离开范围");
         }
+    }
+
+    /// <summary>
+    /// 重置所有永久消失的NPC
+    /// </summary>
+    public static void ResetAllDisappearedNPCs()
+    {
+        disappearedNPCs.Clear();
+        Debug.Log("[NPC] 所有永久消失的NPC已重置");
     }
 }

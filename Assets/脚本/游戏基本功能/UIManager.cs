@@ -54,6 +54,22 @@ public class UIManager : MonoBehaviour
     
     [Tooltip("重置后进入的场景索引（如果场景名称为空则使用索引）")]
     public int resetSceneIndex = 0;
+
+    [Header("=== 返回主菜单特殊过渡 ===")]
+    [Tooltip("启用返回主菜单的特殊过渡动画")]
+    public bool enableMainMenuTransition = false;
+    
+    [Tooltip("主菜单过渡Panel（用于返回主菜单时的特殊动画）")]
+    public GameObject mainMenuTransitionPanel;
+    
+    [Tooltip("主菜单过渡动画时长")]
+    public float mainMenuTransitionDuration = 1f;
+    
+    [Tooltip("主菜单场景名称")]
+    public string mainMenuSceneName = "1. 主菜单";
+    
+    [Tooltip("主菜单场景索引（如果名称为空）")]
+    public int mainMenuSceneIndex = 0;
     #endregion
 
     #region 私有变量
@@ -63,6 +79,7 @@ public class UIManager : MonoBehaviour
     private CanvasGroup fadeOutCanvasGroup;
     private CanvasGroup fadeInCanvasGroup;
     private CanvasGroup pauseMenuCanvasGroup;
+    private CanvasGroup mainMenuTransitionCanvasGroup;
     
     public UnityAction OnGamePaused;
     public UnityAction OnGameResumed;
@@ -130,6 +147,14 @@ public class UIManager : MonoBehaviour
             if (pauseMenuCanvasGroup == null)
                 pauseMenuCanvasGroup = pauseMenuPanel.AddComponent<CanvasGroup>();
         }
+        
+        // 初始化主菜单过渡Panel
+        if (mainMenuTransitionPanel != null)
+        {
+            mainMenuTransitionCanvasGroup = mainMenuTransitionPanel.GetComponent<CanvasGroup>();
+            if (mainMenuTransitionCanvasGroup == null)
+                mainMenuTransitionCanvasGroup = mainMenuTransitionPanel.AddComponent<CanvasGroup>();
+        }
     }
 
     private void HideAllPanels()
@@ -151,6 +176,13 @@ public class UIManager : MonoBehaviour
             if (pauseMenuCanvasGroup != null)
                 pauseMenuCanvasGroup.alpha = 0f;
             pauseMenuPanel.SetActive(false);
+        }
+        
+        if (mainMenuTransitionPanel != null)
+        {
+            if (mainMenuTransitionCanvasGroup != null)
+                mainMenuTransitionCanvasGroup.alpha = 0f;
+            mainMenuTransitionPanel.SetActive(false);
         }
         
         isPaused = false;
@@ -196,6 +228,41 @@ public class UIManager : MonoBehaviour
         Time.timeScale = 1f;
         isPaused = false;
         LoadSceneByIndex(0);
+    }
+
+    /// <summary>
+    /// 返回主菜单（使用特殊过渡动画）
+    /// 适用于从暂停菜单返回主菜单
+    /// </summary>
+    public void ReturnToMainMenuWithTransition()
+    {
+        if (isTransitioning) return;
+        
+        Time.timeScale = 1f;
+        isPaused = false;
+        
+        // 隐藏暂停菜单
+        if (pauseMenuPanel != null)
+        {
+            pauseMenuPanel.SetActive(false);
+        }
+        
+        if (enableMainMenuTransition && mainMenuTransitionPanel != null)
+        {
+            StartCoroutine(PlayMainMenuTransition());
+        }
+        else
+        {
+            // 没有特殊过渡，使用普通加载
+            if (!string.IsNullOrEmpty(mainMenuSceneName))
+            {
+                LoadScene(mainMenuSceneName);
+            }
+            else
+            {
+                LoadSceneByIndex(mainMenuSceneIndex);
+            }
+        }
     }
 
     /// <summary>
@@ -539,6 +606,43 @@ public class UIManager : MonoBehaviour
         Time.timeScale = 1f;
         
         isPauseTransitioning = false;
+    }
+
+    /// <summary>
+    /// 主菜单特殊过渡动画
+    /// </summary>
+    private IEnumerator PlayMainMenuTransition()
+    {
+        isTransitioning = true;
+        
+        // 显示过渡Panel
+        mainMenuTransitionPanel.SetActive(true);
+        
+        if (mainMenuTransitionCanvasGroup != null)
+        {
+            mainMenuTransitionCanvasGroup.alpha = 0f;
+            
+            // 淡入过渡画面
+            float t = 0f;
+            while (t < mainMenuTransitionDuration)
+            {
+                t += Time.unscaledDeltaTime;
+                mainMenuTransitionCanvasGroup.alpha = Mathf.Lerp(0f, 1f, t / mainMenuTransitionDuration);
+                yield return null;
+            }
+            
+            mainMenuTransitionCanvasGroup.alpha = 1f;
+        }
+        
+        // 加载主菜单
+        if (!string.IsNullOrEmpty(mainMenuSceneName))
+        {
+            SceneManager.LoadScene(mainMenuSceneName);
+        }
+        else
+        {
+            SceneManager.LoadScene(mainMenuSceneIndex);
+        }
     }
 
     #endregion

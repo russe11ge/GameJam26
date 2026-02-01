@@ -125,4 +125,14 @@ public class SpawnPoint : MonoBehaviour
         Gizmos.color = isDefaultSpawnPoint ? Color.blue : Color.green;
         Gizmos.DrawWireSphere(transform.position, 0.5f);
     }
+
+    /// <summary>
+    /// 重置生成点静态状态
+    /// </summary>
+    public static void ResetSpawnPointState()
+    {
+        hasSpawnedThisScene = false;
+        spawnedSceneName = "";
+        Debug.Log("[SpawnPoint] 生成点状态已重置");
+    }
 }
