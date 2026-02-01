@@ -4009,7 +4009,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1190298869
 RectTransform:
   m_ObjectHideFlags: 0
@@ -5268,10 +5268,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enablePauseMenu: 1
-  pauseMenuPanel: {fileID: 0}
+  pauseMenuPanel: {fileID: 557480588}
   pauseKey: 27
   pauseMenuTransitionDuration: 0.3
-  blackOverlay: {fileID: 0}
+  blackOverlay: {fileID: 1190298868}
   fadeOutDuration: 0.5
   mainMenuSceneName: "1. \u4E3B\u83DC\u5355"
   mainMenuFadeInDuration: 0.5
