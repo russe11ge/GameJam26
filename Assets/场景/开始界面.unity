@@ -1072,31 +1072,31 @@ MonoBehaviour:
     sceneNames:
     - "2. \u5927\u8857"
     volume: 1
-    loop: 0
+    loop: 1
   - groupName: 
     musicClip: {fileID: 8300000, guid: eeb77ef458bab49edad93f45ca139b0d, type: 3}
     sceneNames:
     - "3. \u64CD\u573A"
     volume: 1
-    loop: 0
+    loop: 1
   - groupName: 
     musicClip: {fileID: 8300000, guid: cd3b8d744adf24fc8be5d13b05407ab6, type: 3}
     sceneNames:
     - "4. \u9152\u9986"
     volume: 1
-    loop: 0
+    loop: 1
   - groupName: 
     musicClip: {fileID: 8300000, guid: 656dee22a27d5404296a1f6e64141f36, type: 3}
     sceneNames:
     - "5. \u8B66\u5C40"
     volume: 1
-    loop: 0
+    loop: 1
   - groupName: 
     musicClip: {fileID: 8300000, guid: 656dee22a27d5404296a1f6e64141f36, type: 3}
     sceneNames:
     - "6. \u5BBF\u820D\u8D70\u5ECA"
     volume: 1
-    loop: 0
+    loop: 1
   specialBGMs: []
   fadeDuration: 1.5
   defaultMusic: {fileID: 0}

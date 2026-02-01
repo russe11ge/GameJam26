@@ -29,30 +29,52 @@ public class SpawnPoint : MonoBehaviour
     private void Start()
     {
         string currentScene = SceneManager.GetActiveScene().name;
+        
+        Debug.Log($"[SpawnPoint:{spawnPointID}] Start() 被调用，场景: {currentScene}");
+        Debug.Log($"[SpawnPoint:{spawnPointID}] hasSpawnedThisScene: {hasSpawnedThisScene}, spawnedSceneName: {spawnedSceneName}");
+        
         if (spawnedSceneName != currentScene)
         {
             hasSpawnedThisScene = false;
             spawnedSceneName = currentScene;
+            Debug.Log($"[SpawnPoint:{spawnPointID}] 新场景，重置标志");
         }
 
-        if (!hasSpawnedThisScene && ShouldSpawnHere())
+        bool shouldSpawn = ShouldSpawnHere();
+        Debug.Log($"[SpawnPoint:{spawnPointID}] ShouldSpawnHere: {shouldSpawn}, hasSpawnedThisScene: {hasSpawnedThisScene}");
+        
+        if (!hasSpawnedThisScene && shouldSpawn)
         {
             hasSpawnedThisScene = true;
+            Debug.Log($"[SpawnPoint:{spawnPointID}] ▶ 开始生成玩家！");
             StartCoroutine(SpawnWithFreeze());
+        }
+        else
+        {
+            string reason = hasSpawnedThisScene ? "已经生成过" : "不是目标生成点";
+            Debug.Log($"[SpawnPoint:{spawnPointID}] ✗ 不生成，原因: {reason}");
         }
     }
 
     private bool ShouldSpawnHere()
     {
-        if (GameManager.Instance == null) return false;
+        if (GameManager.Instance == null)
+        {
+            Debug.Log($"[SpawnPoint:{spawnPointID}] GameManager.Instance 为空");
+            return false;
+        }
 
         string targetID = GameManager.Instance.targetSpawnID;
+        Debug.Log($"[SpawnPoint:{spawnPointID}] 检查: targetID='{targetID}', 我的ID='{spawnPointID}', isDefault={isDefaultSpawnPoint}");
         
         if (!string.IsNullOrEmpty(targetID))
         {
-            return (targetID == spawnPointID);
+            bool match = (targetID == spawnPointID);
+            Debug.Log($"[SpawnPoint:{spawnPointID}] 目标ID匹配: {match}");
+            return match;
         }
 
+        Debug.Log($"[SpawnPoint:{spawnPointID}] 无目标ID，使用默认: {isDefaultSpawnPoint}");
         return isDefaultSpawnPoint;
     }
 
@@ -70,9 +92,17 @@ public class SpawnPoint : MonoBehaviour
         }
 
         // 3. 移动玩家
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        GameObject[] allPlayers = GameObject.FindGameObjectsWithTag("Player");
+        Debug.Log($"[SpawnPoint:{spawnPointID}] 找到 {allPlayers.Length} 个Player对象");
+        foreach (var p in allPlayers)
+        {
+            Debug.Log($"[SpawnPoint:{spawnPointID}] Player: {p.name}, 位置: {p.transform.position}, 场景: {p.scene.name}");
+        }
+        
+        GameObject player = allPlayers.Length > 0 ? allPlayers[0] : null;
         if (player != null)
         {
+            Vector3 oldPos = player.transform.position;
             float z = player.transform.position.z;
             player.transform.position = new Vector3(transform.position.x, transform.position.y, z);
             
@@ -82,6 +112,12 @@ public class SpawnPoint : MonoBehaviour
                 rb.linearVelocity = Vector2.zero;
             }
             Debug.Log($"[SpawnPoint] ★ 玩家生成在: {spawnPointID}");
+            Debug.Log($"[SpawnPoint] 位置变化: {oldPos} → {player.transform.position}");
+            Debug.Log($"[SpawnPoint] SpawnPoint位置: {transform.position}");
+        }
+        else
+        {
+            Debug.LogWarning($"[SpawnPoint:{spawnPointID}] 找不到Player!");
         }
 
         // 4. 等待几帧让一切稳定
@@ -94,6 +130,12 @@ public class SpawnPoint : MonoBehaviour
         if (freezeCanvas != null)
         {
             Destroy(freezeCanvas);
+        }
+        
+        // 6. 验证最终位置
+        if (player != null)
+        {
+            Debug.Log($"[SpawnPoint:{spawnPointID}] 冻结结束后玩家位置: {player.transform.position}");
         }
     }
 

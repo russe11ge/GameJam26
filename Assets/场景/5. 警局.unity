@@ -150,6 +150,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   advanceKey: 32
   speedUpMultiplier: 3
+  freezePlayerDuringReveal: 1
   enableDebug: 1
 --- !u!4 &16091921
 Transform:
@@ -598,7 +599,7 @@ Transform:
   m_GameObject: {fileID: 199981172}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -47.9, y: -20.2, z: 0}
+  m_LocalPosition: {x: -54.4, y: -20.2, z: 0}
   m_LocalScale: {x: 17.836193, y: 17.835136, z: 11.9385}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -732,143 +733,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!1 &250631351
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 250631352}
-  - component: {fileID: 250631354}
-  - component: {fileID: 250631353}
-  m_Layer: 5
-  m_Name: "\u540D\u79F0"
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &250631352
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 250631351}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 264644490}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -461, y: 312}
-  m_SizeDelta: {x: 852.8209, y: 116.3827}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &250631353
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 250631351}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_text: 5. Police Station
-  m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 0161d805a3764c089bef00bfe00793f5, type: 2}
-  m_sharedMaterial: {fileID: 2147374, guid: 0161d805a3764c089bef00bfe00793f5, type: 2}
-  m_fontSharedMaterials: []
-  m_fontMaterial: {fileID: 0}
-  m_fontMaterials: []
-  m_fontColor32:
-    serializedVersion: 2
-    rgba: 4278190080
-  m_fontColor: {r: 0, g: 0, b: 0, a: 1}
-  m_enableVertexGradient: 0
-  m_colorMode: 3
-  m_fontColorGradient:
-    topLeft: {r: 1, g: 1, b: 1, a: 1}
-    topRight: {r: 1, g: 1, b: 1, a: 1}
-    bottomLeft: {r: 1, g: 1, b: 1, a: 1}
-    bottomRight: {r: 1, g: 1, b: 1, a: 1}
-  m_fontColorGradientPreset: {fileID: 0}
-  m_spriteAsset: {fileID: 0}
-  m_tintAllSprites: 0
-  m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: -1183493901
-  m_overrideHtmlColors: 0
-  m_faceColor:
-    serializedVersion: 2
-    rgba: 4294967295
-  m_fontSize: 108.7
-  m_fontSizeBase: 108.7
-  m_fontWeight: 400
-  m_enableAutoSizing: 0
-  m_fontSizeMin: 18
-  m_fontSizeMax: 72
-  m_fontStyle: 0
-  m_HorizontalAlignment: 1
-  m_VerticalAlignment: 256
-  m_textAlignment: 65535
-  m_characterSpacing: 0
-  m_characterHorizontalScale: 1
-  m_wordSpacing: 0
-  m_lineSpacing: 0
-  m_lineSpacingMax: 0
-  m_paragraphSpacing: 0
-  m_charWidthMaxAdj: 0
-  m_TextWrappingMode: 1
-  m_wordWrappingRatios: 0.4
-  m_overflowMode: 0
-  m_linkedTextComponent: {fileID: 0}
-  parentLinkedComponent: {fileID: 0}
-  m_enableKerning: 0
-  m_ActiveFontFeatures: 6e72656b
-  m_enableExtraPadding: 0
-  checkPaddingRequired: 0
-  m_isRichText: 1
-  m_EmojiFallbackSupport: 1
-  m_parseCtrlCharacters: 1
-  m_isOrthographic: 1
-  m_isCullingEnabled: 0
-  m_horizontalMapping: 0
-  m_verticalMapping: 0
-  m_uvLineOffset: 0
-  m_geometrySortingOrder: 0
-  m_IsTextObjectScaleStatic: 0
-  m_VertexBufferAutoSizeReduction: 0
-  m_useMaxVisibleDescender: 1
-  m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0.00024414062, z: -158.24286, w: -31.323914}
-  m_isUsingLegacyAnimationComponent: 0
-  m_isVolumetricText: 0
-  m_hasFontAssetChanged: 0
-  m_baseMaterial: {fileID: 0}
-  m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!222 &250631354
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 250631351}
-  m_CullTransparentMesh: 1
 --- !u!1 &264644489
 GameObject:
   m_ObjectHideFlags: 0
@@ -899,7 +763,6 @@ RectTransform:
   m_Children:
   - {fileID: 1904755542}
   - {fileID: 1847954626}
-  - {fileID: 250631352}
   - {fileID: 1898050090}
   m_Father: {fileID: 1967874733}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1213,6 +1076,57 @@ MonoBehaviour:
   cameraParent: {fileID: 2081604486}
   freezeColor: {r: 0, g: 0, b: 0, a: 1}
   freezeFrames: 3
+--- !u!1 &429405621
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 429405623}
+  - component: {fileID: 429405622}
+  m_Layer: 0
+  m_Name: "\u97F3\u4E50\u7BA1\u7406\u5668"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &429405622
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 429405621}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac987d126c8f74a9994a541c4209a0f2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  audioMixer: {fileID: 0}
+  musicMixerGroup: {fileID: 0}
+  musicGroups: []
+  specialBGMs: []
+  fadeDuration: 1.5
+  defaultMusic: {fileID: 0}
+  defaultVolume: 0.7
+--- !u!4 &429405623
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 429405621}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -35.519604, y: 17.456467, z: -1.010487}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &467273322
 GameObject:
   m_ObjectHideFlags: 0
@@ -1362,7 +1276,7 @@ MonoBehaviour:
   bottomBarRoot: {fileID: 0}
   dialogueText: {fileID: 1898050088}
   hintText: {fileID: 0}
-  advanceKey: 101
+  advanceKey: 32
   useTypewriter: 1
   charDelay: 0.03
 --- !u!4 &548925602
@@ -1604,7 +1518,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f768a7403a01243abad265720d57adb1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enablePauseMenu: 1
+  enablePauseMenu: 0
   pauseMenuPanel: {fileID: 0}
   pauseKey: 27
   pauseMenuTransitionDuration: 0.3
@@ -2326,8 +2240,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   defaultColor: {r: 0, g: 0, b: 0, a: 1}
-  defaultFadeOutDuration: 0.5
-  defaultFadeInDuration: 0.5
+  fadeOutDuration: 0.5
+  fadeInDuration: 0.5
   waitAfterLoad: 0.2
   enableDebug: 1
 --- !u!4 &1109233549
@@ -3021,6 +2935,7 @@ GameObject:
   - component: {fileID: 1574961697}
   - component: {fileID: 1574961701}
   - component: {fileID: 1574961702}
+  - component: {fileID: 1574961703}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -3221,6 +3136,20 @@ MonoBehaviour:
   moveThreshold: 0.1
   useRigidbody: 1
   invertFlip: 0
+--- !u!114 &1574961703
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1574961695}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad7fc207ba2384d2fb6480716b215a0d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dontDestroyOnLoad: 1
+  enableDebug: 1
 --- !u!1 &1585197166
 GameObject:
   m_ObjectHideFlags: 0
@@ -4442,9 +4371,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   interactionMode: 0
-  interactKey: 32
+  interactKey: 101
   freezePlayerDuringDialogue: 1
-  requiredMaskId: 3
+  requiredMaskId: Mask3
   silentWhenLocked: 0
   lockedLines:
   - Nope
@@ -4644,3 +4573,4 @@ SceneRoots:
   - {fileID: 1109233549}
   - {fileID: 800794114}
   - {fileID: 160656444}
+  - {fileID: 429405623}

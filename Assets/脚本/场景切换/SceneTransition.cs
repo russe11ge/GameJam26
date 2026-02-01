@@ -59,6 +59,10 @@ public class SceneTransition : MonoBehaviour
     private AudioSource audioSource;
     private Coroutine hintCoroutine;
 
+    // 场景加载后的冷却时间，防止刚进入场景就触发
+    private static float sceneLoadTime = 0f;
+    private const float SCENE_LOAD_COOLDOWN = 1f; // 1秒冷却
+
     private void Awake()
     {
         audioSource = GetComponent<AudioSource>();
@@ -75,9 +79,20 @@ public class SceneTransition : MonoBehaviour
         }
     }
 
+    private void Start()
+    {
+        // 记录场景加载时间
+        sceneLoadTime = Time.time;
+    }
+
+    private bool IsInCooldown()
+    {
+        return Time.time - sceneLoadTime < SCENE_LOAD_COOLDOWN;
+    }
+
     private void Update()
     {
-        if (requireKeyPress && playerInTrigger && !isTransitioning)
+        if (requireKeyPress && playerInTrigger && !isTransitioning && !IsInCooldown())
         {
             if (Input.GetKeyDown(confirmKey))
             {
@@ -91,6 +106,13 @@ public class SceneTransition : MonoBehaviour
         if (!other.CompareTag(triggerTag) || isTransitioning) return;
 
         playerInTrigger = true;
+
+        // 场景加载后的冷却检查
+        if (IsInCooldown())
+        {
+            Debug.Log($"[SceneTransition] 冷却中，忽略触发 (剩余 {SCENE_LOAD_COOLDOWN - (Time.time - sceneLoadTime):F1}s)");
+            return;
+        }
 
         if (!requireKeyPress)
         {
@@ -206,13 +228,7 @@ public class SceneTransition : MonoBehaviour
         // 使用 TransitionManager 进行过渡
         if (TransitionManager.Instance != null)
         {
-            TransitionManager.Instance.LoadScene(
-                targetSceneName, 
-                fadeColor, 
-                fadeOutDuration, 
-                fadeInDuration, 
-                waitAfterLoad
-            );
+            TransitionManager.Instance.LoadScene(targetSceneName, fadeColor);
         }
         else
         {
@@ -242,5 +258,11 @@ public class SceneTransition : MonoBehaviour
         {
             Gizmos.DrawWireCube(transform.position + (Vector3)box.offset, box.size);
         }
+    }
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStatics()
+    {
+        sceneLoadTime = 0f;
     }
 }

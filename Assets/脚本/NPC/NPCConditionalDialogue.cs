@@ -285,6 +285,7 @@ public class NPCConditionalDialogue : MonoBehaviour
             if (moveScript != null)
             {
                 moveScript.enabled = !freeze;
+                if (enableDebug) Debug.Log($"[NPC:{gameObject.name}] 玩家移动: {(freeze ? "禁用" : "启用")}");
             }
 
             if (freeze)
@@ -295,6 +296,10 @@ public class NPCConditionalDialogue : MonoBehaviour
                     rb.linearVelocity = Vector2.zero;
                 }
             }
+        }
+        else
+        {
+            if (enableDebug) Debug.LogWarning($"[NPC:{gameObject.name}] FreezePlayer 找不到玩家对象！");
         }
     }
 

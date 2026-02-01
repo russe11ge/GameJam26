@@ -17,10 +17,16 @@ public class StoryRevealManager : MonoBehaviour
     [Tooltip("按空格时的加速倍率")]
     public float speedUpMultiplier = 3f;
 
+    [Header("=== 玩家控制 ===")]
+    [Tooltip("揭示过程中禁用玩家移动")]
+    public bool freezePlayerDuringReveal = true;
+
     [Header("=== Debug ===")]
     public bool enableDebug = true;
 
     private bool isRevealing = false;
+    private GameObject playerObject;
+    private PlayerMove2D playerMoveScript;
     private bool isSpeedUp = false;
     private bool allElementsShown = false;
     
@@ -124,7 +130,44 @@ public class StoryRevealManager : MonoBehaviour
         allElementsShown = false;
         isSpeedUp = false;
 
+        // 冻结玩家
+        if (freezePlayerDuringReveal)
+        {
+            FreezePlayer(true);
+        }
+
         StartCoroutine(RevealSequence());
+    }
+
+    private void FreezePlayer(bool freeze)
+    {
+        if (playerObject == null)
+        {
+            playerObject = GameObject.FindGameObjectWithTag("Player");
+        }
+
+        if (playerObject != null)
+        {
+            if (playerMoveScript == null)
+            {
+                playerMoveScript = playerObject.GetComponent<PlayerMove2D>();
+            }
+
+            if (playerMoveScript != null)
+            {
+                playerMoveScript.enabled = !freeze;
+                if (enableDebug) Debug.Log($"[StoryReveal] 玩家移动: {(freeze ? "禁用" : "启用")}");
+            }
+
+            if (freeze)
+            {
+                var rb = playerObject.GetComponent<Rigidbody2D>();
+                if (rb != null)
+                {
+                    rb.linearVelocity = Vector2.zero;
+                }
+            }
+        }
     }
 
     private IEnumerator RevealSequence()
@@ -223,6 +266,12 @@ public class StoryRevealManager : MonoBehaviour
         backgroundCanvasGroup = null;
         isRevealing = false;
         allElementsShown = false;
+
+        // 解冻玩家
+        if (freezePlayerDuringReveal)
+        {
+            FreezePlayer(false);
+        }
 
         if (enableDebug) Debug.Log("[StoryReveal] 揭示结束");
     }
