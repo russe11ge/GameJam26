@@ -27,9 +27,6 @@ EditorBuildSettings:
     path: "Assets/\u573A\u666F/6. \u5BBF\u820D\u8D70\u5ECA.unity"
     guid: aea9eb6ba55b64dc4bb19b7abbb123e3
   - enabled: 1
-    path: "Assets/\u573A\u666F/7. \u5BBF\u820D\u623F\u95F4.unity"
-    guid: 902f596716ccc4c5eae59cbb0ff3bab6
-  - enabled: 1
     path: "Assets/\u573A\u666F/8. \u7ED3\u5C40.unity"
     guid: 98b1cada074e0490991dcfea756ac248
   m_configObjects:
