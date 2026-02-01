@@ -2896,7 +2896,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -1018.35046, y: -563.6792}
+  m_AnchoredPosition: {x: -1018.85956, y: -563.6792}
   m_SizeDelta: {x: 16.9048, y: 5.6502}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &923591768
@@ -4490,6 +4490,7 @@ GameObject:
   - component: {fileID: 1421405437}
   - component: {fileID: 1421405436}
   - component: {fileID: 1421405435}
+  - component: {fileID: 1421405439}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -4633,8 +4634,8 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: -9095717837082945937, guid: 207ee8102dd4143d288186ef0be518ee, type: 3}
-  m_Color: {r: 0.6132076, g: 0.3557761, b: 0.3557761, a: 1}
+  m_Sprite: {fileID: 5641755521537441432, guid: a59de2145e11d45d4a975523339dada9, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -4644,6 +4645,29 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &1421405439
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1421405433}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d3bad7d796e9460ea207c1d4f77ed7b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  idleSprite: {fileID: 5641755521537441432, guid: a59de2145e11d45d4a975523339dada9, type: 3}
+  walkSprites:
+  - {fileID: -987756183793598572, guid: a59de2145e11d45d4a975523339dada9, type: 3}
+  - {fileID: -2427882466719004382, guid: a59de2145e11d45d4a975523339dada9, type: 3}
+  - {fileID: -935216230100867075, guid: a59de2145e11d45d4a975523339dada9, type: 3}
+  - {fileID: -7166880088157080788, guid: a59de2145e11d45d4a975523339dada9, type: 3}
+  - {fileID: 5641755521537441432, guid: a59de2145e11d45d4a975523339dada9, type: 3}
+  walkFrameRate: 8
+  moveThreshold: 0.1
+  useRigidbody: 1
+  invertFlip: 0
 --- !u!1 &1460969197
 GameObject:
   m_ObjectHideFlags: 0
