@@ -1,10 +1,13 @@
 fileFormatVersion: 2
-guid: 0046f643fb8d64541a0fe971620c783e
+guid: d004915923201428499d00fee0ef2eeb
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -5728646327621282923
-    second: IMG_5764_0
+      213: -5665083591007616971
+    second: IMG_6309_0
+  - first:
+      213: -3130901133620612508
+    second: IMG_6309_1
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -72,7 +75,7 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 4
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 2048
+    maxTextureSize: 8192
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
@@ -139,13 +142,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: IMG_5764_0
+      name: IMG_6309_0
       rect:
         serializedVersion: 2
         x: 0
-        y: 0
-        width: 1920
-        height: 1080
+        y: 591
+        width: 1860
+        height: 129
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -154,8 +157,30 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 59399464482cf70b0800000000000000
-      internalID: -5728646327621282923
+      spriteID: 530c8172d749161b0800000000000000
+      internalID: -5665083591007616971
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: IMG_6309_1
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 1860
+        height: 453
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 462fca7d10ecc84d0800000000000000
+      internalID: -3130901133620612508
       vertices: []
       indices: 
       edges: []
@@ -174,7 +199,8 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      IMG_5764_0: -5728646327621282923
+      IMG_6309_0: -5665083591007616971
+      IMG_6309_1: -3130901133620612508
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

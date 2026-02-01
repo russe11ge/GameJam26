@@ -5,8 +5,7 @@ using UnityEngine.Events;
 
 /// <summary>
 /// UI管理器 - 每个场景独立
-/// 每个场景都有自己的UIManager，按钮直接引用当前场景的UIManager
-/// 在Button的OnClick()中选择UIManager组件，然后选择对应的方法
+/// 使用 TransitionManager 处理场景过渡动画
 /// </summary>
 public class UIManager : MonoBehaviour
 {
@@ -17,23 +16,14 @@ public class UIManager : MonoBehaviour
 
     #region Inspector设置
     [Header("=== 过渡动画设置 ===")]
-    [Tooltip("启用场景过渡动画")]
-    public bool enableTransition = true;
-    
-    [Tooltip("淡出Panel（离开场景时显示）")]
-    public GameObject fadeOutPanel;
-    
-    [Tooltip("淡入Panel（进入场景时显示）")]
-    public GameObject fadeInPanel;
+    [Tooltip("过渡颜色")]
+    public Color transitionColor = Color.black;
     
     [Tooltip("淡出动画时长")]
     public float fadeOutDuration = 0.5f;
     
     [Tooltip("淡入动画时长")]
     public float fadeInDuration = 0.5f;
-    
-    [Tooltip("进入场景时自动播放淡入动画")]
-    public bool playFadeInOnStart = true;
 
     [Header("=== 暂停菜单设置 ===")]
     [Tooltip("启用暂停菜单")]
@@ -54,32 +44,13 @@ public class UIManager : MonoBehaviour
     
     [Tooltip("重置后进入的场景索引（如果场景名称为空则使用索引）")]
     public int resetSceneIndex = 0;
-
-    [Header("=== 返回主菜单特殊过渡 ===")]
-    [Tooltip("启用返回主菜单的特殊过渡动画")]
-    public bool enableMainMenuTransition = false;
-    
-    [Tooltip("主菜单过渡Panel（用于返回主菜单时的特殊动画）")]
-    public GameObject mainMenuTransitionPanel;
-    
-    [Tooltip("主菜单过渡动画时长")]
-    public float mainMenuTransitionDuration = 1f;
-    
-    [Tooltip("主菜单场景名称")]
-    public string mainMenuSceneName = "1. 主菜单";
-    
-    [Tooltip("主菜单场景索引（如果名称为空）")]
-    public int mainMenuSceneIndex = 0;
     #endregion
 
     #region 私有变量
     private bool isPaused = false;
     private bool isTransitioning = false;
     private bool isPauseTransitioning = false;
-    private CanvasGroup fadeOutCanvasGroup;
-    private CanvasGroup fadeInCanvasGroup;
     private CanvasGroup pauseMenuCanvasGroup;
-    private CanvasGroup mainMenuTransitionCanvasGroup;
     
     public UnityAction OnGamePaused;
     public UnityAction OnGameResumed;
@@ -96,12 +67,6 @@ public class UIManager : MonoBehaviour
     private void Start()
     {
         HideAllPanels();
-        
-        // 进入场景时自动播放淡入动画
-        if (playFadeInOnStart && enableTransition && fadeInPanel != null)
-        {
-            StartCoroutine(PlayFadeInOnStart());
-        }
     }
 
     private void Update()
@@ -124,53 +89,16 @@ public class UIManager : MonoBehaviour
     #region 初始化
     private void InitializePanels()
     {
-        // 初始化淡出Panel
-        if (fadeOutPanel != null)
-        {
-            fadeOutCanvasGroup = fadeOutPanel.GetComponent<CanvasGroup>();
-            if (fadeOutCanvasGroup == null)
-                fadeOutCanvasGroup = fadeOutPanel.AddComponent<CanvasGroup>();
-        }
-        
-        // 初始化淡入Panel
-        if (fadeInPanel != null)
-        {
-            fadeInCanvasGroup = fadeInPanel.GetComponent<CanvasGroup>();
-            if (fadeInCanvasGroup == null)
-                fadeInCanvasGroup = fadeInPanel.AddComponent<CanvasGroup>();
-        }
-        
-        // 初始化暂停菜单Panel
         if (pauseMenuPanel != null)
         {
             pauseMenuCanvasGroup = pauseMenuPanel.GetComponent<CanvasGroup>();
             if (pauseMenuCanvasGroup == null)
                 pauseMenuCanvasGroup = pauseMenuPanel.AddComponent<CanvasGroup>();
         }
-        
-        // 初始化主菜单过渡Panel
-        if (mainMenuTransitionPanel != null)
-        {
-            mainMenuTransitionCanvasGroup = mainMenuTransitionPanel.GetComponent<CanvasGroup>();
-            if (mainMenuTransitionCanvasGroup == null)
-                mainMenuTransitionCanvasGroup = mainMenuTransitionPanel.AddComponent<CanvasGroup>();
-        }
     }
 
     private void HideAllPanels()
     {
-        if (fadeOutPanel != null)
-        {
-            fadeOutCanvasGroup.alpha = 0f;
-            fadeOutPanel.SetActive(false);
-        }
-        
-        if (fadeInPanel != null)
-        {
-            fadeInCanvasGroup.alpha = 1f; // 淡入从黑色开始
-            fadeInPanel.SetActive(false);
-        }
-        
         if (pauseMenuPanel != null)
         {
             if (pauseMenuCanvasGroup != null)
@@ -178,41 +106,8 @@ public class UIManager : MonoBehaviour
             pauseMenuPanel.SetActive(false);
         }
         
-        if (mainMenuTransitionPanel != null)
-        {
-            if (mainMenuTransitionCanvasGroup != null)
-                mainMenuTransitionCanvasGroup.alpha = 0f;
-            mainMenuTransitionPanel.SetActive(false);
-        }
-        
         isPaused = false;
         Time.timeScale = 1f;
-    }
-
-    /// <summary>
-    /// 场景开始时的淡入动画
-    /// </summary>
-    private IEnumerator PlayFadeInOnStart()
-    {
-        if (fadeInPanel == null || fadeInCanvasGroup == null) yield break;
-        
-        // 显示淡入Panel（从黑色开始）
-        fadeInPanel.SetActive(true);
-        fadeInCanvasGroup.alpha = 1f;
-        
-        // 等待一帧确保场景完全加载
-        yield return null;
-        
-        float t = 0f;
-        while (t < fadeInDuration)
-        {
-            t += Time.unscaledDeltaTime;
-            fadeInCanvasGroup.alpha = Mathf.Lerp(1f, 0f, t / fadeInDuration);
-            yield return null;
-        }
-        
-        fadeInCanvasGroup.alpha = 0f;
-        fadeInPanel.SetActive(false);
     }
     #endregion
 
@@ -228,41 +123,6 @@ public class UIManager : MonoBehaviour
         Time.timeScale = 1f;
         isPaused = false;
         LoadSceneByIndex(0);
-    }
-
-    /// <summary>
-    /// 返回主菜单（使用特殊过渡动画）
-    /// 适用于从暂停菜单返回主菜单
-    /// </summary>
-    public void ReturnToMainMenuWithTransition()
-    {
-        if (isTransitioning) return;
-        
-        Time.timeScale = 1f;
-        isPaused = false;
-        
-        // 隐藏暂停菜单
-        if (pauseMenuPanel != null)
-        {
-            pauseMenuPanel.SetActive(false);
-        }
-        
-        if (enableMainMenuTransition && mainMenuTransitionPanel != null)
-        {
-            StartCoroutine(PlayMainMenuTransition());
-        }
-        else
-        {
-            // 没有特殊过渡，使用普通加载
-            if (!string.IsNullOrEmpty(mainMenuSceneName))
-            {
-                LoadScene(mainMenuSceneName);
-            }
-            else
-            {
-                LoadSceneByIndex(mainMenuSceneIndex);
-            }
-        }
     }
 
     /// <summary>
@@ -308,12 +168,15 @@ public class UIManager : MonoBehaviour
     /// </summary>
     public void LoadScene(string sceneName)
     {
+        if (isTransitioning) return;
+        
         Time.timeScale = 1f;
         isPaused = false;
+        isTransitioning = true;
         
-        if (enableTransition && fadeOutPanel != null)
+        if (TransitionManager.Instance != null)
         {
-            StartCoroutine(LoadSceneWithFadeOut(sceneName));
+            TransitionManager.Instance.LoadScene(sceneName, transitionColor, fadeOutDuration, fadeInDuration);
         }
         else
         {
@@ -326,12 +189,15 @@ public class UIManager : MonoBehaviour
     /// </summary>
     public void LoadSceneByIndex(int sceneIndex)
     {
+        if (isTransitioning) return;
+        
         Time.timeScale = 1f;
         isPaused = false;
+        isTransitioning = true;
         
-        if (enableTransition && fadeOutPanel != null)
+        if (TransitionManager.Instance != null)
         {
-            StartCoroutine(LoadSceneByIndexWithFadeOut(sceneIndex));
+            TransitionManager.Instance.LoadSceneByIndex(sceneIndex, transitionColor, fadeOutDuration, fadeInDuration);
         }
         else
         {
@@ -510,53 +376,8 @@ public class UIManager : MonoBehaviour
 
     #endregion
 
-    #region 【过渡动画协程】
+    #region 【暂停菜单动画】
     
-    private IEnumerator LoadSceneWithFadeOut(string sceneName)
-    {
-        if (isTransitioning) yield break;
-        isTransitioning = true;
-
-        // 播放淡出动画
-        yield return StartCoroutine(PlayFadeOut());
-
-        // 加载场景（新场景的UIManager会自动播放淡入）
-        SceneManager.LoadScene(sceneName);
-    }
-
-    private IEnumerator LoadSceneByIndexWithFadeOut(int index)
-    {
-        if (isTransitioning) yield break;
-        isTransitioning = true;
-
-        yield return StartCoroutine(PlayFadeOut());
-        SceneManager.LoadScene(index);
-    }
-
-    /// <summary>
-    /// 淡出动画
-    /// </summary>
-    private IEnumerator PlayFadeOut()
-    {
-        if (fadeOutPanel == null || fadeOutCanvasGroup == null) yield break;
-        
-        fadeOutPanel.SetActive(true);
-        fadeOutCanvasGroup.alpha = 0f;
-        
-        float t = 0f;
-        while (t < fadeOutDuration)
-        {
-            t += Time.unscaledDeltaTime;
-            fadeOutCanvasGroup.alpha = Mathf.Lerp(0f, 1f, t / fadeOutDuration);
-            yield return null;
-        }
-        
-        fadeOutCanvasGroup.alpha = 1f;
-    }
-
-    /// <summary>
-    /// 暂停菜单淡入
-    /// </summary>
     private IEnumerator PauseMenuFadeIn()
     {
         isPauseTransitioning = true;
@@ -581,9 +402,6 @@ public class UIManager : MonoBehaviour
         isPauseTransitioning = false;
     }
     
-    /// <summary>
-    /// 暂停菜单淡出
-    /// </summary>
     private IEnumerator PauseMenuFadeOut()
     {
         isPauseTransitioning = true;
@@ -606,43 +424,6 @@ public class UIManager : MonoBehaviour
         Time.timeScale = 1f;
         
         isPauseTransitioning = false;
-    }
-
-    /// <summary>
-    /// 主菜单特殊过渡动画
-    /// </summary>
-    private IEnumerator PlayMainMenuTransition()
-    {
-        isTransitioning = true;
-        
-        // 显示过渡Panel
-        mainMenuTransitionPanel.SetActive(true);
-        
-        if (mainMenuTransitionCanvasGroup != null)
-        {
-            mainMenuTransitionCanvasGroup.alpha = 0f;
-            
-            // 淡入过渡画面
-            float t = 0f;
-            while (t < mainMenuTransitionDuration)
-            {
-                t += Time.unscaledDeltaTime;
-                mainMenuTransitionCanvasGroup.alpha = Mathf.Lerp(0f, 1f, t / mainMenuTransitionDuration);
-                yield return null;
-            }
-            
-            mainMenuTransitionCanvasGroup.alpha = 1f;
-        }
-        
-        // 加载主菜单
-        if (!string.IsNullOrEmpty(mainMenuSceneName))
-        {
-            SceneManager.LoadScene(mainMenuSceneName);
-        }
-        else
-        {
-            SceneManager.LoadScene(mainMenuSceneIndex);
-        }
     }
 
     #endregion

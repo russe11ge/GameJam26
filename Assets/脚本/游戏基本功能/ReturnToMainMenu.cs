@@ -1,48 +1,53 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
 /// <summary>
-/// 返回主菜单 - 带白色过渡效果
-/// 可以挂在任何物体上，通过按钮调用
+/// 返回主菜单 - 使用手动添加的黑色遮罩
+/// 配合 MainMenuController 的黑色淡入
 /// </summary>
 public class ReturnToMainMenu : MonoBehaviour
 {
     [Header("=== 目标设置 ===")]
     [Tooltip("主菜单场景名称")]
     public string mainMenuSceneName = "1. 主菜单";
-    
-    [Tooltip("主菜单场景索引（如果名称为空）")]
-    public int mainMenuSceneIndex = 0;
 
-    [Header("=== 过渡设置 ===")]
-    [Tooltip("过渡颜色")]
-    public Color transitionColor = Color.white;
+    [Header("=== 黑色遮罩（手动添加）===")]
+    [Tooltip("黑色遮罩 GameObject（需要有 CanvasGroup）")]
+    public GameObject blackOverlay;
     
-    [Tooltip("淡出时长（当前场景）")]
+    [Tooltip("淡出时长（黑色出现）")]
     public float fadeOutDuration = 1f;
     
-    [Tooltip("淡入时长（主菜单）")]
-    public float fadeInDuration = 1f;
+    [Tooltip("主菜单淡入时长")]
+    public float mainMenuFadeInDuration = 0.5f;
 
-    [Header("=== UI 隐藏设置 ===")]
-    [Tooltip("过渡开始时要隐藏的 UI（如暂停菜单）")]
-    public GameObject[] uiToHide;
+    [Header("=== UI 淡出设置 ===")]
+    [Tooltip("过渡时要渐渐消失的 UI（如暂停菜单面板）")]
+    public GameObject[] uiToFadeOut;
 
-    private static bool needsFadeIn = false;
-    private static Color savedTransitionColor = Color.white;
-    private static float savedFadeInDuration = 1f;
+    [Header("=== Debug ===")]
+    public bool enableDebug = true;
 
+    private CanvasGroup blackOverlayCanvasGroup;
     private bool isTransitioning = false;
 
-    private void Start()
+    private void Awake()
     {
-        // 检查是否需要播放淡入动画
-        if (needsFadeIn)
+        // 初始化黑色遮罩
+        if (blackOverlay != null)
         {
-            needsFadeIn = false;
-            StartCoroutine(PlayFadeIn());
+            blackOverlayCanvasGroup = blackOverlay.GetComponent<CanvasGroup>();
+            if (blackOverlayCanvasGroup == null)
+            {
+                blackOverlayCanvasGroup = blackOverlay.AddComponent<CanvasGroup>();
+            }
+            // 初始隐藏
+            blackOverlayCanvasGroup.alpha = 0f;
+            // 不阻挡鼠标
+            blackOverlayCanvasGroup.blocksRaycasts = false;
+            blackOverlayCanvasGroup.interactable = false;
+            blackOverlay.SetActive(true);
         }
     }
 
@@ -53,107 +58,95 @@ public class ReturnToMainMenu : MonoBehaviour
     {
         if (isTransitioning) return;
         
-        Time.timeScale = 1f;
+        if (enableDebug) Debug.Log("[ReturnToMainMenu] GoToMainMenu() 被调用");
         
-        // 保存淡入设置供主菜单使用
-        needsFadeIn = true;
-        savedTransitionColor = transitionColor;
-        savedFadeInDuration = fadeInDuration;
+        Time.timeScale = 1f;
+        isTransitioning = true;
         
         StartCoroutine(TransitionToMainMenu());
     }
 
     private IEnumerator TransitionToMainMenu()
     {
-        isTransitioning = true;
+        // 准备需要淡出的 UI
+        CanvasGroup[] uiCanvasGroups = PrepareUIForFadeOut();
+        float[] originalAlphas = null;
+        
+        if (uiCanvasGroups != null)
+        {
+            originalAlphas = new float[uiCanvasGroups.Length];
+            for (int i = 0; i < uiCanvasGroups.Length; i++)
+            {
+                if (uiCanvasGroups[i] != null)
+                {
+                    originalAlphas[i] = uiCanvasGroups[i].alpha;
+                }
+            }
+        }
 
-        // 立即隐藏指定的 UI
-        HideUI();
+        if (enableDebug) Debug.Log("[ReturnToMainMenu] 开始淡出");
 
-        // 创建过渡 Canvas
-        GameObject transitionCanvas = CreateTransitionCanvas();
-        CanvasGroup canvasGroup = transitionCanvas.GetComponentInChildren<CanvasGroup>();
-
-        // 淡出（当前场景变白）
+        // 淡出（黑色遮罩出现 + UI 消失）
         float elapsed = 0f;
         while (elapsed < fadeOutDuration)
         {
             elapsed += Time.unscaledDeltaTime;
-            canvasGroup.alpha = Mathf.Lerp(0f, 1f, elapsed / fadeOutDuration);
+            float progress = Mathf.Clamp01(elapsed / fadeOutDuration);
+            
+            // 黑色遮罩渐渐出现
+            if (blackOverlayCanvasGroup != null)
+            {
+                blackOverlayCanvasGroup.alpha = progress;
+            }
+            
+            // UI 渐渐消失
+            if (uiCanvasGroups != null && originalAlphas != null)
+            {
+                for (int i = 0; i < uiCanvasGroups.Length; i++)
+                {
+                    if (uiCanvasGroups[i] != null)
+                    {
+                        uiCanvasGroups[i].alpha = Mathf.Lerp(originalAlphas[i], 0f, progress);
+                    }
+                }
+            }
+            
             yield return null;
         }
-        canvasGroup.alpha = 1f;
+
+        // 确保完全淡出
+        if (blackOverlayCanvasGroup != null)
+        {
+            blackOverlayCanvasGroup.alpha = 1f;
+        }
+
+        if (enableDebug) Debug.Log("[ReturnToMainMenu] 淡出完成，加载主菜单");
+
+        // 通知 MainMenuController 需要淡入
+        MainMenuController.SetNeedsFadeIn(mainMenuFadeInDuration);
 
         // 加载主菜单
-        if (!string.IsNullOrEmpty(mainMenuSceneName))
-        {
-            SceneManager.LoadScene(mainMenuSceneName);
-        }
-        else
-        {
-            SceneManager.LoadScene(mainMenuSceneIndex);
-        }
+        SceneManager.LoadScene(mainMenuSceneName);
     }
 
-    private void HideUI()
+    private CanvasGroup[] PrepareUIForFadeOut()
     {
-        if (uiToHide == null) return;
+        if (uiToFadeOut == null || uiToFadeOut.Length == 0) return null;
+
+        CanvasGroup[] groups = new CanvasGroup[uiToFadeOut.Length];
         
-        foreach (var ui in uiToHide)
+        for (int i = 0; i < uiToFadeOut.Length; i++)
         {
-            if (ui != null)
+            if (uiToFadeOut[i] == null) continue;
+            
+            CanvasGroup cg = uiToFadeOut[i].GetComponent<CanvasGroup>();
+            if (cg == null)
             {
-                ui.SetActive(false);
+                cg = uiToFadeOut[i].AddComponent<CanvasGroup>();
             }
+            groups[i] = cg;
         }
-    }
-
-    private IEnumerator PlayFadeIn()
-    {
-        // 创建过渡 Canvas
-        GameObject transitionCanvas = CreateTransitionCanvas(savedTransitionColor);
-        CanvasGroup canvasGroup = transitionCanvas.GetComponentInChildren<CanvasGroup>();
-        canvasGroup.alpha = 1f;
-
-        // 淡入（白色消失）
-        float elapsed = 0f;
-        while (elapsed < savedFadeInDuration)
-        {
-            elapsed += Time.unscaledDeltaTime;
-            canvasGroup.alpha = Mathf.Lerp(1f, 0f, elapsed / savedFadeInDuration);
-            yield return null;
-        }
-
-        Destroy(transitionCanvas);
-    }
-
-    private GameObject CreateTransitionCanvas(Color? color = null)
-    {
-        Color useColor = color ?? transitionColor;
-
-        GameObject canvasObj = new GameObject("MainMenuTransitionCanvas");
-        Canvas canvas = canvasObj.AddComponent<Canvas>();
-        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        canvas.sortingOrder = 99999;
-        DontDestroyOnLoad(canvasObj);
-
-        GameObject panel = new GameObject("TransitionPanel");
-        panel.transform.SetParent(canvasObj.transform, false);
-
-        Image img = panel.AddComponent<Image>();
-        img.color = useColor;
-        img.raycastTarget = false;
-
-        RectTransform rt = panel.GetComponent<RectTransform>();
-        rt.anchorMin = Vector2.zero;
-        rt.anchorMax = Vector2.one;
-        rt.offsetMin = Vector2.zero;
-        rt.offsetMax = Vector2.zero;
-
-        CanvasGroup cg = panel.AddComponent<CanvasGroup>();
-        cg.alpha = 0f;
-        cg.blocksRaycasts = false;
-
-        return canvasObj;
+        
+        return groups;
     }
 }
