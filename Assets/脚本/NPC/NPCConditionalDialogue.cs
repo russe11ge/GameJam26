@@ -171,12 +171,26 @@ public class NPCConditionalDialogue : MonoBehaviour
         if (freezePlayerDuringDialogue) FreezePlayer(false);
 
         // 奖励面具
+        if (enableDebug)
+        {
+            Debug.Log($"[NPC:{gameObject.name}] 检查面具奖励: rewardMaskAfterTalk={rewardMaskAfterTalk}, rewardMaskId='{rewardMaskId}'");
+        }
+        
         if (rewardMaskAfterTalk && !string.IsNullOrEmpty(rewardMaskId))
         {
             if (PlayerMaskManager.Instance != null)
             {
+                if (enableDebug) Debug.Log($"[NPC:{gameObject.name}] ★ 奖励面具: {rewardMaskId}");
                 PlayerMaskManager.Instance.UnlockMask(rewardMaskId);
             }
+            else
+            {
+                if (enableDebug) Debug.LogWarning($"[NPC:{gameObject.name}] PlayerMaskManager.Instance 为空，无法奖励面具！");
+            }
+        }
+        else if (rewardMaskAfterTalk && string.IsNullOrEmpty(rewardMaskId))
+        {
+            if (enableDebug) Debug.LogWarning($"[NPC:{gameObject.name}] rewardMaskAfterTalk=true 但 rewardMaskId 为空！");
         }
 
         // 标记为永久消失（离开场景后生效）

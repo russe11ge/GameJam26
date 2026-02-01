@@ -30,6 +30,14 @@ public class MaskDatabase : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
+            
+            // 确保是根对象才能 DontDestroyOnLoad
+            if (transform.parent != null)
+            {
+                Debug.Log("[MaskDatabase] 检测到父对象，解除父子关系");
+                transform.SetParent(null);
+            }
+            
             DontDestroyOnLoad(gameObject);
             BuildLookup();
         }

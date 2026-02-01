@@ -9,11 +9,11 @@ public class PlayerMaskManager : MonoBehaviour
 
     [Header("=== 当前面具 ===")]
     [Tooltip("当前佩戴的面具ID，UI会读取这个值显示图标")]
-    public string currentMaskId = "mask_blank";
+    public string currentMaskId = "Mask1";
 
     [Header("=== 默认设置 ===")]
-    [Tooltip("默认/初始面具ID")]
-    public string defaultMaskId = "mask_blank";
+    [Tooltip("默认/初始面具ID（重启游戏或进入主菜单时重置为此值）")]
+    public string defaultMaskId = "Mask1";
 
     [Header("=== Debug ===")]
     public bool enableDebug = true;
@@ -23,6 +23,14 @@ public class PlayerMaskManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
+            
+            // 确保是根对象才能 DontDestroyOnLoad
+            if (transform.parent != null)
+            {
+                if (enableDebug) Debug.Log("[PlayerMaskManager] 检测到父对象，解除父子关系");
+                transform.SetParent(null);
+            }
+            
             DontDestroyOnLoad(gameObject);
             if (enableDebug) Debug.Log("[PlayerMaskManager] 初始化成功，当前面具: " + currentMaskId);
         }

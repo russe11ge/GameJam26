@@ -36,14 +36,14 @@ public class UIManager : MonoBehaviour
 
     [Header("=== 主菜单设置 ===")]
     [Tooltip("主菜单场景名称")]
-    public string mainMenuSceneName = "1. 主菜单";
+    public string mainMenuSceneName = "开始界面";
     
     [Tooltip("主菜单淡入时长")]
     public float mainMenuFadeInDuration = 0.5f;
 
     [Header("=== 重置游戏设置 ===")]
     [Tooltip("重置后进入的场景名称")]
-    public string resetSceneName = "1. 主菜单";
+    public string resetSceneName = "开始界面";
     
     [Tooltip("重置后进入的场景索引（如果场景名称为空则使用索引）")]
     public int resetSceneIndex = 0;

@@ -80,13 +80,23 @@ public class TransitionManager : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        if (enableDebug) Debug.Log("[TransitionManager] 场景加载: " + scene.name + ", needsFadeIn: " + needsFadeIn);
+        if (enableDebug) Debug.Log("[TransitionManager] 场景加载: " + scene.name + ", needsFadeIn: " + needsFadeIn + ", isTransitioning: " + isTransitioning);
         
         // 场景加载后播放淡入
         if (needsFadeIn)
         {
             needsFadeIn = false;
             StartCoroutine(PlayFadeIn(fadeInColor, fadeInDuration, fadeInWaitTime));
+        }
+        else
+        {
+            // 如果不需要淡入，确保重置过渡状态
+            isTransitioning = false;
+            if (transitionCanvas != null)
+            {
+                transitionCanvas.SetActive(false);
+            }
+            if (enableDebug) Debug.Log("[TransitionManager] 无需淡入，重置过渡状态");
         }
     }
 
@@ -187,6 +197,27 @@ public class TransitionManager : MonoBehaviour
     {
         float useDuration = duration ?? defaultFadeInDuration;
         StartCoroutine(PlayFadeInOnly(useDuration, onComplete));
+    }
+
+    /// <summary>
+    /// 强制重置过渡状态（用于修复卡住的情况）
+    /// </summary>
+    public void ForceReset()
+    {
+        StopAllCoroutines();
+        isTransitioning = false;
+        needsFadeIn = false;
+        
+        if (canvasGroup != null)
+        {
+            canvasGroup.alpha = 0f;
+        }
+        if (transitionCanvas != null)
+        {
+            transitionCanvas.SetActive(false);
+        }
+        
+        if (enableDebug) Debug.Log("[TransitionManager] 强制重置完成");
     }
 
     // ==================== 内部协程 ====================
