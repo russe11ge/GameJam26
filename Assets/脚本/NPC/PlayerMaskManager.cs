@@ -3,7 +3,29 @@ using UnityEngine;
 
 public class PlayerMaskManager : MonoBehaviour
 {
-    public static PlayerMaskManager Instance;
+    #region 单例（自动创建）
+    private static PlayerMaskManager _instance;
+    public static PlayerMaskManager Instance
+    {
+        get
+        {
+            if (_instance == null)
+            {
+                // 先尝试在场景中查找
+                _instance = FindAnyObjectByType<PlayerMaskManager>();
+                
+                // 如果找不到，自动创建一个
+                if (_instance == null)
+                {
+                    GameObject go = new GameObject("PlayerMaskManager");
+                    _instance = go.AddComponent<PlayerMaskManager>();
+                    Debug.Log("[PlayerMaskManager] 自动创建实例");
+                }
+            }
+            return _instance;
+        }
+    }
+    #endregion
 
     private HashSet<string> ownedMasks = new HashSet<string>();
 
@@ -20,9 +42,9 @@ public class PlayerMaskManager : MonoBehaviour
 
     void Awake()
     {
-        if (Instance == null)
+        if (_instance == null)
         {
-            Instance = this;
+            _instance = this;
             
             // 确保是根对象才能 DontDestroyOnLoad
             if (transform.parent != null)
@@ -34,7 +56,7 @@ public class PlayerMaskManager : MonoBehaviour
             DontDestroyOnLoad(gameObject);
             if (enableDebug) Debug.Log("[PlayerMaskManager] 初始化成功，当前面具: " + currentMaskId);
         }
-        else
+        else if (_instance != this)
         {
             if (enableDebug) Debug.Log("[PlayerMaskManager] 已存在实例，销毁重复的");
             Destroy(gameObject);
@@ -175,6 +197,6 @@ public class PlayerMaskManager : MonoBehaviour
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetStatics()
     {
-        Instance = null;
+        _instance = null;
     }
 }

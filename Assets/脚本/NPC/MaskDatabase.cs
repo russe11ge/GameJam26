@@ -8,7 +8,26 @@ using UnityEngine;
 /// </summary>
 public class MaskDatabase : MonoBehaviour
 {
-    public static MaskDatabase Instance;
+    #region 单例（自动查找）
+    private static MaskDatabase _instance;
+    public static MaskDatabase Instance
+    {
+        get
+        {
+            if (_instance == null)
+            {
+                // 尝试在场景中查找（MaskDatabase需要配置数据，不能自动创建空的）
+                _instance = FindAnyObjectByType<MaskDatabase>();
+                
+                if (_instance == null)
+                {
+                    Debug.LogWarning("[MaskDatabase] 场景中没有找到 MaskDatabase！请确保在开始界面场景中放置了 MaskDatabase 对象。");
+                }
+            }
+            return _instance;
+        }
+    }
+    #endregion
 
     [Serializable]
     public class MaskEntry
@@ -27,9 +46,9 @@ public class MaskDatabase : MonoBehaviour
 
     void Awake()
     {
-        if (Instance == null)
+        if (_instance == null)
         {
-            Instance = this;
+            _instance = this;
             
             // 确保是根对象才能 DontDestroyOnLoad
             if (transform.parent != null)
@@ -41,7 +60,7 @@ public class MaskDatabase : MonoBehaviour
             DontDestroyOnLoad(gameObject);
             BuildLookup();
         }
-        else
+        else if (_instance != this)
         {
             Destroy(gameObject);
         }
@@ -90,6 +109,6 @@ public class MaskDatabase : MonoBehaviour
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetStatics()
     {
-        Instance = null;
+        _instance = null;
     }
 }
