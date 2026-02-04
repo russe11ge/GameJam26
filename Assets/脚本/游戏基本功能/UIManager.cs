@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using UnityEngine.Events;
 
@@ -27,15 +28,18 @@ public class UIManager : MonoBehaviour
     [Tooltip("暂停菜单过渡时长")]
     public float pauseMenuTransitionDuration = 0.3f;
 
-    [Header("=== 黑色遮罩（手动添加）===")]
-    [Tooltip("黑色遮罩 GameObject（需要有 CanvasGroup）")]
+    [Header("=== 黑色遮罩（可选，不填会自动创建）===")]
+    [Tooltip("黑色遮罩 GameObject（留空会自动创建最高优先级遮罩）")]
     public GameObject blackOverlay;
     
     [Tooltip("返回主菜单时淡出时长")]
     public float fadeOutDuration = 0.8f;
+    
+    [Tooltip("遮罩颜色")]
+    public Color fadeColor = Color.black;
 
     [Header("=== 主菜单设置 ===")]
-    [Tooltip("主菜单场景名称")]
+    [Tooltip("主菜单场景名称（在这里填写你的主菜单场景名）")]
     public string mainMenuSceneName = "开始界面";
     
     [Tooltip("主菜单淡入时长")]
@@ -139,12 +143,19 @@ public class UIManager : MonoBehaviour
 
     /// <summary>
     /// 返回主菜单（带黑色遮罩过渡）
+    /// 画面整体变黑（最高优先级UI黑色遮罩），然后回到主菜单scene
     /// </summary>
     public void GoToMainMenu()
     {
         if (isTransitioning) return;
 
-        if (enableDebug) Debug.Log("[UIManager] 返回主菜单");
+        if (string.IsNullOrEmpty(mainMenuSceneName))
+        {
+            Debug.LogError("[UIManager] mainMenuSceneName 为空！请在 Inspector 中设置主菜单场景名称。");
+            return;
+        }
+
+        if (enableDebug) Debug.Log($"[UIManager] 返回主菜单: {mainMenuSceneName}");
 
         isTransitioning = true;
         Time.timeScale = 1f;
@@ -154,6 +165,17 @@ public class UIManager : MonoBehaviour
 
     private IEnumerator TransitionToMainMenu()
     {
+        // 如果没有手动设置黑色遮罩，自动创建一个最高优先级的
+        CanvasGroup fadeCanvasGroup = blackOverlayCanvasGroup;
+        GameObject autoCreatedCanvas = null;
+        
+        if (fadeCanvasGroup == null)
+        {
+            autoCreatedCanvas = CreateHighPriorityFadeCanvas();
+            fadeCanvasGroup = autoCreatedCanvas.GetComponent<CanvasGroup>();
+            if (enableDebug) Debug.Log("[UIManager] 自动创建黑色遮罩");
+        }
+
         // 记录暂停菜单初始 alpha
         float pauseMenuStartAlpha = 0f;
         if (pauseMenuCanvasGroup != null && pauseMenuPanel != null && pauseMenuPanel.activeSelf)
@@ -171,9 +193,9 @@ public class UIManager : MonoBehaviour
             float progress = Mathf.Clamp01(elapsed / fadeOutDuration);
 
             // 黑色遮罩渐渐出现
-            if (blackOverlayCanvasGroup != null)
+            if (fadeCanvasGroup != null)
             {
-                blackOverlayCanvasGroup.alpha = progress;
+                fadeCanvasGroup.alpha = progress;
             }
 
             // 暂停菜单渐渐消失
@@ -186,18 +208,53 @@ public class UIManager : MonoBehaviour
         }
 
         // 确保完全黑屏
-        if (blackOverlayCanvasGroup != null)
+        if (fadeCanvasGroup != null)
         {
-            blackOverlayCanvasGroup.alpha = 1f;
+            fadeCanvasGroup.alpha = 1f;
         }
 
-        if (enableDebug) Debug.Log("[UIManager] 黑屏完成，加载主菜单");
+        if (enableDebug) Debug.Log($"[UIManager] 黑屏完成，加载主菜单: {mainMenuSceneName}");
 
         // 通知主菜单需要淡入
         MainMenuController.SetNeedsFadeIn(mainMenuFadeInDuration);
 
         // 加载主菜单
         SceneManager.LoadScene(mainMenuSceneName);
+    }
+
+    /// <summary>
+    /// 创建最高优先级的黑色遮罩 Canvas
+    /// </summary>
+    private GameObject CreateHighPriorityFadeCanvas()
+    {
+        // 创建 Canvas
+        GameObject canvasObj = new GameObject("UIManager_FadeCanvas");
+        Canvas canvas = canvasObj.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 32767; // 最高优先级
+
+        // 添加 CanvasGroup
+        CanvasGroup canvasGroup = canvasObj.AddComponent<CanvasGroup>();
+        canvasGroup.alpha = 0f;
+        canvasGroup.blocksRaycasts = true; // 阻挡点击
+        canvasGroup.interactable = false;
+
+        // 创建黑色面板
+        GameObject panel = new GameObject("FadePanel");
+        panel.transform.SetParent(canvasObj.transform, false);
+
+        Image img = panel.AddComponent<Image>();
+        img.color = fadeColor;
+        img.raycastTarget = true;
+
+        // 铺满全屏
+        RectTransform rt = panel.GetComponent<RectTransform>();
+        rt.anchorMin = Vector2.zero;
+        rt.anchorMax = Vector2.one;
+        rt.offsetMin = Vector2.zero;
+        rt.offsetMax = Vector2.zero;
+
+        return canvasObj;
     }
 
     #endregion

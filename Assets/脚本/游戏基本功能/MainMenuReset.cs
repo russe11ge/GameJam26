@@ -25,6 +25,9 @@ public class MainMenuReset : MonoBehaviour
     [Tooltip("重置值触发器状态（ValueTrigger）")]
     public bool resetValueTriggers = true;
     
+    [Tooltip("重置一次性文字触发器（OneTimeTextTrigger）")]
+    public bool resetOneTimeTextTriggers = true;
+    
     [Tooltip("清除 PlayerPrefs 存档")]
     public bool clearPlayerPrefs = true;
 
@@ -79,7 +82,13 @@ public class MainMenuReset : MonoBehaviour
             ResetValueTriggerData();
         }
 
-        // 7. 清除 PlayerPrefs
+        // 7. 重置一次性文字触发器
+        if (resetOneTimeTextTriggers)
+        {
+            ResetOneTimeTextTriggerData();
+        }
+
+        // 8. 清除 PlayerPrefs
         if (clearPlayerPrefs)
         {
             PlayerPrefs.DeleteAll();
@@ -151,5 +160,12 @@ public class MainMenuReset : MonoBehaviour
         // 重置值触发器状态
         ValueTrigger.ResetAllTriggers();
         if (enableDebug) Debug.Log("[MainMenuReset] 值触发器状态已重置");
+    }
+
+    private void ResetOneTimeTextTriggerData()
+    {
+        // 重置一次性文字触发器状态
+        OneTimeTextTrigger.ResetAllTriggers();
+        if (enableDebug) Debug.Log("[MainMenuReset] 一次性文字触发器状态已重置");
     }
 }

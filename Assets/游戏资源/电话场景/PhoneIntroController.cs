@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
 
@@ -33,6 +34,19 @@ public class PhoneIntroController : MonoBehaviour
     public bool autoLoadNextScene = false;
     public string nextSceneName = "";
     public float endDelay = 1.0f;
+
+    [Header("=== 过渡动画设置 ===")]
+    [Tooltip("启用黑色过渡动画")]
+    public bool useFadeTransition = true;
+    
+    [Tooltip("过渡颜色")]
+    public Color fadeColor = Color.black;
+    
+    [Tooltip("淡出时长（画面变黑）")]
+    public float fadeOutDuration = 0.8f;
+    
+    [Tooltip("淡出前的额外延迟")]
+    public float delayBeforeFade = 0.5f;
 
     private bool skipping = false;
 
@@ -151,7 +165,7 @@ public class PhoneIntroController : MonoBehaviour
 
         if (autoLoadNextScene && !string.IsNullOrEmpty(nextSceneName))
         {
-            SceneManager.LoadScene(nextSceneName);
+            yield return StartCoroutine(LoadSceneWithTransition());
         }
     }
 
@@ -169,8 +183,80 @@ public class PhoneIntroController : MonoBehaviour
 
         if (autoLoadNextScene && !string.IsNullOrEmpty(nextSceneName))
         {
+            yield return StartCoroutine(LoadSceneWithTransition());
+        }
+    }
+
+    /// <summary>
+    /// 带过渡动画的场景加载
+    /// </summary>
+    private IEnumerator LoadSceneWithTransition()
+    {
+        // 额外延迟
+        if (delayBeforeFade > 0)
+        {
+            yield return new WaitForSeconds(delayBeforeFade);
+        }
+
+        if (useFadeTransition)
+        {
+            // 优先使用 TransitionManager
+            if (TransitionManager.Instance != null)
+            {
+                TransitionManager.Instance.LoadScene(nextSceneName, fadeColor);
+                yield break; // TransitionManager 会处理后续
+            }
+
+            // 如果没有 TransitionManager，使用自己的淡出效果
+            yield return StartCoroutine(FadeOutAndLoad());
+        }
+        else
+        {
+            // 不使用过渡，直接加载
             SceneManager.LoadScene(nextSceneName);
         }
+    }
+
+    /// <summary>
+    /// 自带的淡出效果（当 TransitionManager 不存在时使用）
+    /// </summary>
+    private IEnumerator FadeOutAndLoad()
+    {
+        // 创建临时的黑色遮罩
+        GameObject canvasObj = new GameObject("FadeCanvas");
+        Canvas canvas = canvasObj.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 9999;
+
+        CanvasGroup canvasGroup = canvasObj.AddComponent<CanvasGroup>();
+        canvasGroup.alpha = 0f;
+        canvasGroup.blocksRaycasts = false;
+
+        GameObject panel = new GameObject("FadePanel");
+        panel.transform.SetParent(canvasObj.transform, false);
+
+        Image img = panel.AddComponent<Image>();
+        img.color = fadeColor;
+        img.raycastTarget = false;
+
+        RectTransform rt = panel.GetComponent<RectTransform>();
+        rt.anchorMin = Vector2.zero;
+        rt.anchorMax = Vector2.one;
+        rt.offsetMin = Vector2.zero;
+        rt.offsetMax = Vector2.zero;
+
+        // 淡出动画
+        float elapsed = 0f;
+        while (elapsed < fadeOutDuration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            canvasGroup.alpha = Mathf.Clamp01(elapsed / fadeOutDuration);
+            yield return null;
+        }
+        canvasGroup.alpha = 1f;
+
+        // 加载场景
+        SceneManager.LoadScene(nextSceneName);
     }
 
     private int CountVisibleCharacters(string richText)

@@ -1701,9 +1701,10 @@ MonoBehaviour:
   pauseMenuTransitionDuration: 0.3
   blackOverlay: {fileID: 0}
   fadeOutDuration: 0.5
-  mainMenuSceneName: "1. \u4E3B\u83DC\u5355"
+  fadeColor: {r: 0, g: 0, b: 0, a: 1}
+  mainMenuSceneName: "\u5F00\u59CB\u754C\u9762"
   mainMenuFadeInDuration: 0.5
-  resetSceneName: "1. \u4E3B\u83DC\u5355"
+  resetSceneName: "\u5F00\u59CB\u754C\u9762"
   resetSceneIndex: 0
   enableDebug: 0
 --- !u!4 &643637637
